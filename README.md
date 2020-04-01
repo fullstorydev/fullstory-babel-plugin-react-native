@@ -2,10 +2,14 @@
 
 [![CircleCI](https://circleci.com/gh/fullstorydev/fullstory-babel-plugin-react-native.svg?style=svg)](https://circleci.com/gh/fullstorydev/fullstory-babel-plugin-react-native)
 
-FullStory's React Native babel plugin performs compile-time transformations to allow FullStory to access certain React Native attributes.
+## Note: This is a Work in Progress and has yet to be published to NPM.
+
+FullStory's React Native babel plugin performs compile-time transformations to add FullStory-specific attributes to all React Native controls. This plugin should only be used in conjunction with `@fullstory/react-native`.
 
 
 ## Install the React Native babel plugin
+
+### Note: this babel plugin is automatically installed as a dependency to `@fullstory/react-native`
 
 #### with npm
 
