@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.3
+
+Adds README information about the private beta
+
 ## 0.9.2
 
 Support for press handling on Android
