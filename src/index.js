@@ -1,5 +1,5 @@
-import * as babylon from "babylon";
-import * as t from "babel-types";
+import * as babylon from "@babel/parser";
+import * as t from "@babel/types";
 
 // this is the code that we will generate for Pressability
 const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = function(isLongPress) {

@@ -21,8 +21,8 @@
     "test": "mocha --require babel-core/register"
   },
   "dependencies": {
-    "babel-types": "^6.26.0",
-    "babylon": "^6.18.0"
+    "@babel/parser": "^7.0.0",
+    "@babel/types": "^7.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
