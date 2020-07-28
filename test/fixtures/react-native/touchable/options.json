@@ -1,0 +1,7 @@
+{
+  "plugins": [
+      "syntax-jsx",
+      "syntax-flow",
+      ["../../../../src"]
+  ]
+}
