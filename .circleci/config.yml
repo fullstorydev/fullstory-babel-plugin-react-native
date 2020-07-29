@@ -21,7 +21,13 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
       - run:
           name: Audit
-          command: npm audit --audit-level=low
+          command: npm audit --audit-level=low --production
+      - run:
+          name: Build
+          command: npm run build
+      - run:
+          name: Test
+          command: npm run test
       - persist_to_workspace:
           root: .
           paths: .
