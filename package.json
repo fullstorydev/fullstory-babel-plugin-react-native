@@ -1,6 +1,6 @@
 {
   "name": "@fullstory/babel-plugin-react-native",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "The official FullStory React Native babel plugin",
   "repository": "git://github.com/fullstorydev/fullstory-babel-plugin-react-native.git",
   "homepage": "https://github.com/fullstorydev/fullstory-babel-plugin-react-native",
