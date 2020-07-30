@@ -1,8 +1,13 @@
 # Changelog
 
+## 0.9.4
+
+Added support for `onReady`
+Added support for `fsAttribute` and `fsTagName` 
+
 ## 0.9.3
 
-Adds README information about the private beta
+Added README information about the private beta
 
 ## 0.9.2
 
