@@ -2,8 +2,8 @@
 
 ## 0.9.4
 
-Added support for `onReady`
-Added support for `fsAttribute` and `fsTagName` 
+Added the unmodified source code
+Added support for `fsAttribute`, `fsTagName`, `data-component`, `data-element`, and `data-source-file`
 
 ## 0.9.3
 
