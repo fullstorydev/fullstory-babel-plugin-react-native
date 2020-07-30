@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.4
+## 0.9.5
 
 Added the unmodified source code
 Added support for `fsAttribute`, `fsTagName`, `data-component`, `data-element`, and `data-source-file`
