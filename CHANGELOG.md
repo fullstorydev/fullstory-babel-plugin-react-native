@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0
+
+1.0.0 release!
+
 ## 0.9.5
 
 Added the unmodified source code
