@@ -38,7 +38,7 @@ const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(_onFs
 
 // this is the code that we will generate for Touchable
 const _onFsPressForwardCode = `_onFsPressForward = function(isLongPress) {
-  if (UIManager == null || UIManager.onFsPressForward == null) {
+  if (!UIManager || !UIManager.onFsPressForward) {
     return;
   }
 
