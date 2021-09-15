@@ -3,7 +3,7 @@ import * as t from "@babel/types";
 
 // this is the code that we will generate for Pressability
 const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = function(isLongPress) {
-  if (UIManager == null || UIManager.onFsPressForward == null) {
+  if (!UIManager || !UIManager.onFsPressForward) {
     return;
   }
 
