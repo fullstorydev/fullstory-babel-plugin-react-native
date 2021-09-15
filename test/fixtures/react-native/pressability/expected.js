@@ -765,7 +765,7 @@ export default class Pressability {
   }
 
   _onFsPressForward_Pressability(isLongPress) {
-    if (UIManager.onFsPressForward == null) {
+    if (!UIManager || !UIManager.onFsPressForward) {
       return;
     }if (this._responderID == null) {
       return;
@@ -775,8 +775,9 @@ export default class Pressability {
       nativeTag = this._responderID._nativeTag;
     }if (nativeTag == null) {
       return;
-    }
-    const { onLongPress, onPress } = this._config;var hasPress = !!onPress;var hasLongPress = !!onLongPress;UIManager.onFsPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+    }const {
+      onLongPress,
+      onPress } = this._config;var hasPress = !!onPress;var hasLongPress = !!onLongPress;UIManager.onFsPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
   }
 
 }
