@@ -8,7 +8,7 @@ This plugin does not replace `@fullstory/babel-plugin-annotate-react`, which ann
 
 This plugin should only be used in conjunction with `@fullstory/react-native`.
 
-This plug-in is intended to be used in conjunction with [FullStory for Mobile Apps](https://www.fullstory.com/mobile-apps/). For more information, please see [this](https://help.fullstory.com/hc/en-us/articles/360052419133) getting started guide.
+This plug-in is intended to be used in conjunction with [FullStory for Mobile Apps](https://www.fullstory.com/mobile-apps/). For more information, please see [this](https://help.fullstory.com/hc/en-us/articles/360052419133) getting started guide. Email mobile-support@fullstory.com for additional help.
 
 ## Install the React Native babel plugin
 
