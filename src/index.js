@@ -3,7 +3,11 @@ import * as t from "@babel/types";
 
 // this is the code that we will generate for Pressability
 const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = function(isLongPress) {
-  if (!UIManager || !UIManager.onFsPressForward) {
+  try {
+    if (!UIManager || !UIManager.onFsPressForward) {
+      return;
+    }
+  } catch (e) {
     return;
   }
 
@@ -38,7 +42,11 @@ const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(_onFs
 
 // this is the code that we will generate for Touchable
 const _onFsPressForwardCode = `_onFsPressForward = function(isLongPress) {
-  if (!UIManager || !UIManager.onFsPressForward) {
+  try {
+    if (!UIManager || !UIManager.onFsPressForward) {
+      return;
+    }
+  } catch (e) {
     return;
   }
 
