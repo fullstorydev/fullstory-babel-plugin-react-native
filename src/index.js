@@ -1,7 +1,8 @@
 import * as babylon from "@babel/parser";
 import * as t from "@babel/types";
 
-// this is the code that we will generate for Pressability
+// This is the code that we will generate for Pressability.
+// Note that `typeof UIManager` will cause an exception, so we use a try/catch.
 const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = function(isLongPress) {
   try {
     if (!UIManager || !UIManager.onFsPressForward) {
@@ -40,7 +41,8 @@ const _onFsPressForwardCallLongPress_PressabilityAst = babylon.parseExpression(_
 const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(_onFsPressForwardCallPress_PressabilityCode, {});
 
 
-// this is the code that we will generate for Touchable
+// This is the code that we will generate for Touchable.
+// Note that `typeof UIManager` will cause an exception, so we use a try/catch.
 const _onFsPressForwardCode = `_onFsPressForward = function(isLongPress) {
   try {
     if (!UIManager || !UIManager.onFsPressForward) {
