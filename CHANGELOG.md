@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+Additional work around for an intermittent issue in the click handler when running with the Metro server
+
 ## 1.0.1
 
 Work around an intermittent issue in the click handler when running with the Metro server
