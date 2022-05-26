@@ -765,11 +765,7 @@ export default class Pressability {
   }
 
   _onFsPressForward_Pressability(isLongPress) {
-    try {
-      if (!UIManager || !UIManager.onFsPressForward) {
-        return;
-      }
-    } catch (e) {
+    if (!UIManager || !UIManager.onFsPressForward) {
       return;
     }if (this._responderID == null) {
       return;
