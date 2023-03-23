@@ -148,7 +148,7 @@ function fixReactNativeViewConfig(path) {
 
   const declaration = path.node.declarations[0];
   // validate that there is a name node and its value is what we expect
-  if (!declaration.id || !declaration.id.name || declaration.id.name !== 'ReactNativeViewConfig') {
+  if (!declaration.id || !declaration.id.name || (declaration.id.name !== 'ReactNativeViewConfig' && declaration.id.name !== 'PlatformBaseViewConfigIos' && declaration.id.name !== 'PlatformBaseViewConfigAndroid')) {
     return;
   }
 
