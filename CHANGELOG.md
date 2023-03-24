@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+Fixed an issue with React Native 71+ that prevented privacy rules from working on `Text` components
+
 ## 1.0.2
 
 Additional work around for an intermittent issue in the click handler when running with the Metro server
