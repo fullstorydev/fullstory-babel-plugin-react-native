@@ -4,12 +4,8 @@ import * as t from "@babel/types";
 // This is the code that we will generate for Pressability.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
 const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = function(isLongPress) {
-  try {
-    if (!UIManager || !UIManager.onFsPressForward) {
+  if (!UIManager || !UIManager.onFsPressForward) {
       return;
-    }
-  } catch (e) {
-    return;
   }
 
   if (this._responderID == null) {
@@ -44,14 +40,9 @@ const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(_onFs
 // This is the code that we will generate for Touchable.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
 const _onFsPressForwardCode = `_onFsPressForward = function(isLongPress) {
-  try {
-    if (!UIManager || !UIManager.onFsPressForward) {
+  if (!UIManager || !UIManager.onFsPressForward) {
       return;
-    }
-  } catch (e) {
-    return;
   }
-
   const tag = this.state.touchable.responderID;
   if (tag == null) {
     return;
@@ -263,7 +254,8 @@ function fixPressability(t, path) {
         });
 
         // now add the new ClassMethod to the bodyArray
-        bodyArray.push(t.classMethod("method", t.identifier("_onFsPressForward_Pressability"), _onFsPressForward_PressabilityAst.right.params, _onFsPressForward_PressabilityAst.right.body, false, false));
+        const clonedAst = t.cloneDeep(_onFsPressForward_PressabilityAst);
+        bodyArray.push(t.classMethod("method", t.identifier("_onFsPressForward_Pressability"), clonedAst.right.params, clonedAst.right.body, false, false));
       } else {
         // skip further processing on this object property
         classMethodPath.skip();
@@ -321,7 +313,8 @@ function fixTouchableMixin(t, path) {
         });
 
         // now add the new ObjectProperty to the parent path
-        mixin.init.properties.push(t.objectProperty(t.identifier("_onFsPressForward"), _onFsPressForwardAst.right));
+        const clonedAst = t.cloneDeep(_onFsPressForwardAst);
+        mixin.init.properties.push(t.objectProperty(t.identifier("_onFsPressForward"), clonedAst.right));
       } else {
         // skip further processing on this object property
         mixinPath.skip();

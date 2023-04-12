@@ -793,11 +793,7 @@ const TouchableMixin = {
 
   withoutDefaultFocusAndBlur: ({}: $TEMPORARY$object<{||}>),
   _onFsPressForward: function (isLongPress) {
-    try {
-      if (!UIManager || !UIManager.onFsPressForward) {
-        return;
-      }
-    } catch (e) {
+    if (!UIManager || !UIManager.onFsPressForward) {
       return;
     }const tag = this.state.touchable.responderID;if (tag == null) {
       return;
