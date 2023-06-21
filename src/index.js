@@ -346,6 +346,32 @@ export default function({ types: t }) {
         fixReactNativeViewAttributes(path);
         fixTouchableMixin(t, path);
       },
+      JSXAttribute(path) {
+        if (path.parent.name.name !== 'View') return; 
+
+        if (
+          path.node.name.name !== 'fsClass' &&
+          path.node.name.name !== 'fsTagName' && 
+          path.node.name.name !== 'fsAttribute'
+        ) {
+          return;
+        }
+        
+        const isViewOptimizationDisabled = path.container.some(attribute => {
+          return t.isJSXIdentifier(attribute.name, { name: 'viewID' }) ||
+          t.isJSXIdentifier(attribute.name, { name: 'id' }) || 
+          t.isJSXIdentifier(attribute.name, { name: 'nativeID' });
+        })
+
+        if (isViewOptimizationDisabled) {
+          return;
+        }
+        
+				path.insertAfter(t.jsxAttribute(
+          t.jsxIdentifier('nativeID'),
+          t.stringLiteral('__FS_NATIVEID')
+        ))
+			}
     },
   };
 }
