@@ -1,6 +1,9 @@
 import * as babylon from "@babel/parser";
 import * as t from "@babel/types";
 
+const applyFSPropertiesWithRef = "applyFSPropertiesWithRef";
+const elements = ["View", "Text"];
+
 // This is the code that we will generate for Pressability.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
 const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = function(isLongPress) {
@@ -333,11 +336,91 @@ function fixTouchableMixin(t, path) {
 /* eslint-disable complexity */
 export default function({ types: t }) {
   return {
+    name: 'fullstory-react-native',
     visitor: {
       /* Looks like we don't currently need to add this to the interface declaration
       InterfaceDeclaration(path, state) {
         fixUIManagerJSInterface(path);
       }, */
+
+      Program: {
+        enter(path, { file }) {
+          const hasReactNative = path.node.body.some((x) => {
+            return (
+              t.isImportDeclaration(x) && x.source.value === "react-native"
+            );
+          });
+          // Do nothing if applyFSPropertiesWithRef is already declared
+          // React Native needs to be in scope
+          if (
+            path.scope.hasBinding(applyFSPropertiesWithRef) ||
+            !hasReactNative
+          ) {
+            return;
+          }
+
+          // create applyFSPropertiesWithRef import statement
+          const applyFSImportStatement = t.importDeclaration(
+            [
+              t.importSpecifier(
+                t.identifier(applyFSPropertiesWithRef),
+                t.identifier(applyFSPropertiesWithRef)
+              ),
+            ],
+            t.stringLiteral("@fullstory/react-native")
+          );
+
+          // add import statement to top of file
+          const [newPath] = path.unshiftContainer("body", applyFSImportStatement);
+
+          // register import in scope
+          newPath.get("specifiers").forEach((specifier) => {
+            path.scope.registerBinding("module", specifier);
+          });
+
+          // save import node in state
+          file.set("ourPath", newPath);
+
+          // Add a placeholder variable bount to applyFSPropertiesWithRef to prevent
+          // unused variable deletion from other plugins (@babel/plugin-transform-typescript)
+          const placeholder = t.variableDeclaration("let", [
+            t.variableDeclarator(
+              t.identifier("handle"),
+              t.toExpression(t.identifier(applyFSPropertiesWithRef))
+            ),
+          ]);
+
+          const [placeholderPath] = path.pushContainer("body", placeholder);
+          path.scope.registerDeclaration(placeholderPath);
+
+          // save for deletion later
+          file.set("placeholder", placeholderPath);
+
+          // update scope reference paths
+          path.scope.crawl();
+        },
+
+        exit(_, { file }) {
+          // delete placeholder variable
+          const placeholder = file.get("placeholder");
+
+          if (placeholder) {
+            placeholder.remove();
+          }
+
+          // If our import is still intact and we haven't encountered any JSX in
+          // the program, then we just remove it. There's an edge case, where
+          // some other plugin could add JSX in its `Program.exit`, so our
+          // `JSXOpeningElement` will trigger only after this method
+          const ourPath = file.get("ourPath");
+          if (ourPath && !file.get("hasJSX")) {
+            if (!ourPath.removed) {
+              ourPath.remove();
+            }
+            file.set("ourPath", undefined);
+          }
+        },
+      },
       ClassDeclaration(path, state) {
         fixPressability(t, path);
       },
