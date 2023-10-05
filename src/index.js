@@ -333,6 +333,33 @@ function fixTouchableMixin(t, path) {
   });
 }
 
+function isReactFragment(openingElement) {
+  if (openingElement.isJSXFragment()) {
+    return true
+  }
+
+  if (
+    !openingElement.node ||
+    !openingElement.node.name
+  ) return
+
+  if (openingElement.node.name.name === 'Fragment' ||
+    openingElement.node.name.name === 'React.Fragment'
+  ) return true;
+
+  if (
+    !openingElement.node.name.type ||
+    !openingElement.node.name.object ||
+    !openingElement.node.name.property
+  ) return
+
+  return (
+    openingElement.node.name.type === 'JSXMemberExpression' &&
+    openingElement.node.name.object.name === 'React' &&
+    openingElement.node.name.property.name === 'Fragment'
+  )
+}
+
 /* eslint-disable complexity */
 export default function({ types: t }) {
   return {
@@ -421,6 +448,58 @@ export default function({ types: t }) {
           }
         },
       },
+
+      ImportDeclaration(path, { file }) {
+        // check if applyFSPropertiesWithRef is imported
+        if (
+          path.node.specifiers.every((x) => {
+            return x.local.name !== "applyFSPropertiesWithRef";
+          })
+        ) {
+          return;
+        }
+
+        // If our import is still intact and we encounter some other import
+        // which also imports `applyFSPropertiesWithRef`, then we remove ours.
+        const ourPath = file.get("ourPath");
+        if (ourPath && path !== ourPath) {
+          if (!ourPath.removed) {
+            ourPath.remove();
+          }
+          file.set("ourPath", undefined);
+        }
+      },
+
+      JSXOpeningElement(path, { file }) {
+        // do not annotate fragments
+        if (isReactFragment(path)) return;
+      
+        // only annotate specific base components
+        if (!elements.includes(path.node.name.name)) return;
+
+        // only annotate when applyFSPropertiesWithRef is in scope
+        if (!path.scope.hasBinding(applyFSPropertiesWithRef)) return;
+        
+        file.set("hasJSX", true);
+        
+        // check if Component has any `ref` value
+        const hasRef = path.get("attributes").some((attribute) => {
+          return attribute.node.name?.name === "ref";
+        });
+
+        if (!hasRef) {
+          // create a new `ref` value
+          path.node.attributes.push(
+            t.jsxAttribute(
+              t.jsxIdentifier("ref"),
+              t.JSXExpressionContainer(
+                t.CallExpression(t.identifier(applyFSPropertiesWithRef), [])
+              )
+            )
+          );
+        }
+      },
+
       ClassDeclaration(path, state) {
         fixPressability(t, path);
       },
