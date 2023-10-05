@@ -360,6 +360,37 @@ function isReactFragment(openingElement) {
   )
 }
 
+function extendExistingRef(path) {
+  // process existing ref value
+  if (path.node.name.name === "ref") {
+    // ignore if the ref value is already applyFSPropertiesWithRef
+    if (
+      t.isJSXExpressionContainer(path.node.value) &&
+      !(
+        t.isCallExpression(path.node.value.expression) &&
+        path.node.value.expression.callee.name ===
+          applyFSPropertiesWithRef
+      )
+    ) {
+      // only process refs on base components
+      if(!elements.includes(path.parent.name.name)) return;
+
+      const originalRef = path.node.value.expression;
+
+      path.replaceWith(
+        t.jsxAttribute(
+          t.jsxIdentifier("ref"),
+          t.JSXExpressionContainer(
+            t.CallExpression(t.identifier(applyFSPropertiesWithRef), [
+              originalRef,
+            ])
+          )
+        )
+      );
+    }
+  }
+}
+
 /* eslint-disable complexity */
 export default function({ types: t }) {
   return {
@@ -481,7 +512,7 @@ export default function({ types: t }) {
         if (!path.scope.hasBinding(applyFSPropertiesWithRef)) return;
         
         file.set("hasJSX", true);
-        
+
         // check if Component has any `ref` value
         const hasRef = path.get("attributes").some((attribute) => {
           return attribute.node.name?.name === "ref";
@@ -508,6 +539,36 @@ export default function({ types: t }) {
         fixReactNativeViewAttributes(path);
         fixTouchableMixin(t, path);
       },
+      JSXAttribute(path) {
+        extendExistingRef(path);
+
+        // disable view optimization for only View component
+        if (path.parent.name.name !== 'View') return; 
+
+        // must be manually annotated with at least one fs attribute
+        if (
+          path.node.name.name !== 'fsClass' &&
+          path.node.name.name !== 'fsTagName' && 
+          path.node.name.name !== 'fsAttribute'
+        ) {
+          return;
+        }
+        
+        const isViewOptimizationDisabled = path.container.some(attribute => {
+          return t.isJSXIdentifier(attribute.name, { name: 'viewID' }) ||
+          t.isJSXIdentifier(attribute.name, { name: 'id' }) || 
+          t.isJSXIdentifier(attribute.name, { name: 'nativeID' });
+        })
+
+        if (isViewOptimizationDisabled) {
+          return;
+        }
+        
+				path.insertAfter(t.jsxAttribute(
+          t.jsxIdentifier('nativeID'),
+          t.stringLiteral('__FS_NATIVEID')
+        ))
+			}
     },
   };
 }
