@@ -2,7 +2,17 @@ import * as babylon from "@babel/parser";
 import * as t from "@babel/types";
 
 const applyFSPropertiesWithRef = "applyFSPropertiesWithRef";
-const elements = ["View", "Text"];
+const elements = [
+  "View",
+  "Text",
+  "Image",
+  "TextInput",
+  "ScrollView",
+  "Button",
+  "Switch",
+  "FlatList",
+  "SectionList",
+];
 
 // This is the code that we will generate for Pressability.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
@@ -372,8 +382,8 @@ function extendExistingRef(path) {
           applyFSPropertiesWithRef
       )
     ) {
-      // only process refs on base components
-      if(!elements.includes(path.parent.name.name)) return;
+      // only process refs on base components and applyFSPropertiesWithRef must be imported
+      if(!elements.includes(path.parent.name.name) || !path.scope.hasBinding(applyFSPropertiesWithRef)) return;
 
       const originalRef = path.node.value.expression;
 
