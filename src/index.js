@@ -412,7 +412,9 @@ export default function({ types: t }) {
       }, */
 
       Program: {
-        enter(path, { file }) {
+        enter(path, { file, opts }) {
+          if (!opts.isNewArchitectureEnabled) return;
+
           const hasReactNative = path.node.body.some((x) => {
             return (
               t.isImportDeclaration(x) && x.source.value === "react-native"
@@ -468,7 +470,9 @@ export default function({ types: t }) {
           path.scope.crawl();
         },
 
-        exit(_, { file }) {
+        exit(_, { file, opts }) {
+          if (!opts.isNewArchitectureEnabled) return;
+
           // delete placeholder variable
           const placeholder = file.get("placeholder");
 
@@ -490,7 +494,9 @@ export default function({ types: t }) {
         },
       },
 
-      ImportDeclaration(path, { file }) {
+      ImportDeclaration(path, { file, opts }) {
+        if (!opts.isNewArchitectureEnabled) return;
+
         // check if applyFSPropertiesWithRef is imported
         if (
           path.node.specifiers.every((x) => {
@@ -511,7 +517,8 @@ export default function({ types: t }) {
         }
       },
 
-      JSXOpeningElement(path, { file }) {
+      JSXOpeningElement(path, { file, opts }) {
+        if (!opts.isNewArchitectureEnabled) return;
         // do not annotate fragments
         if (isReactFragment(path)) return;
       
@@ -549,8 +556,10 @@ export default function({ types: t }) {
         fixReactNativeViewAttributes(path);
         fixTouchableMixin(t, path);
       },
-      JSXAttribute(path) {
-        extendExistingRef(path);
+      JSXAttribute(path, { opts }) {
+        if (opts.isNewArchitectureEnabled) {
+          extendExistingRef(path);
+        }
 
         // disable view optimization for only View component
         if (path.parent.name.name !== 'View') return; 
