@@ -1,5 +1,5 @@
-import { applyFSPropertiesWithRef } from "@fullstory/react-native";
-import { View } from "react-native";
+import { applyFSPropertiesWithRef } from '@fullstory/react-native';
+import { View } from 'react-native';
 const Wrapper = () => {
   return <></>;
 };

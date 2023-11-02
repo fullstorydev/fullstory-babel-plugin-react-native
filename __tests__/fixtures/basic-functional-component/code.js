@@ -1,5 +1,4 @@
-import { View } from "react-native";
+import { View } from 'react-native';
 function Component() {
-    return <View />;
+  return <View />;
 }
-  

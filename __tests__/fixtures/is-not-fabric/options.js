@@ -1,5 +1,5 @@
 module.exports = {
-    pluginOptions: {
-        isNewArchitectureEnabled: false,
-    }
-}
+  pluginOptions: {
+    isNewArchitectureEnabled: false,
+  },
+};

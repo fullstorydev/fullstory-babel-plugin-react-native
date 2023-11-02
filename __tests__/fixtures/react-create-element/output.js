@@ -1,15 +1,15 @@
-import { applyFSPropertiesWithRef } from "@fullstory/react-native";
-import { createElement } from "react";
-import { Text, View } from "react-native";
-import { jsx as _jsx } from "react/jsx-runtime";
+import { applyFSPropertiesWithRef } from '@fullstory/react-native';
+import { createElement } from 'react';
+import { Text, View } from 'react-native';
+import { jsx as _jsx } from 'react/jsx-runtime';
 function NonJSXView({ children }) {
   return createElement(
     View,
     {
-      fsTagName: "NonJSXView",
+      fsTagName: 'NonJSXView',
       ref: applyFSPropertiesWithRef(),
     },
-    children
+    children,
   );
 }
 export default function ReactCloneElement() {
@@ -18,10 +18,10 @@ export default function ReactCloneElement() {
       {createElement(
         Text,
         {
-          fsTagName: "NonJSXText",
+          fsTagName: 'NonJSXText',
           ref: applyFSPropertiesWithRef(),
         },
-        "hello"
+        'hello',
       )}
     </NonJSXView>
   );

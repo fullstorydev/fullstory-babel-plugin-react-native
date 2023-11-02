@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { View } from 'react-native';
 const Wrapper = () => {
   return <></>;
 };
@@ -7,5 +7,5 @@ export const Component = () => {
     <View>
       <Wrapper />
     </View>
-  )
-}
+  );
+};
