@@ -1,5 +1,6 @@
 import * as babylon from "@babel/parser";
 import * as t from "@babel/types";
+import { isReactCreateElementCall } from "./isReactCreateElement";
 
 const applyFSPropertiesWithRef = "applyFSPropertiesWithRef";
 const elements = [
@@ -413,61 +414,61 @@ export default function({ types: t }) {
 
       Program: {
         enter(path, { file, opts }) {
-          if (!opts.isNewArchitectureEnabled) return;
-
-          const hasReactNative = path.node.body.some((x) => {
-            return (
-              t.isImportDeclaration(x) && x.source.value === "react-native"
+          if (opts.isNewArchitectureEnabled) {
+            const hasReactNativeOrReact = path.node.body.some((x) => {
+              return (
+                t.isImportDeclaration(x) && (x.source.value === "react-native" || x.source.value === "react")
+              );
+            });
+            // Do nothing if applyFSPropertiesWithRef is already declared
+            // React Native needs to be in scope
+            if (
+              path.scope.hasBinding(applyFSPropertiesWithRef) ||
+              !hasReactNativeOrReact
+            ) {
+              return;
+            }
+  
+            // create applyFSPropertiesWithRef import statement
+            const applyFSImportStatement = t.importDeclaration(
+              [
+                t.importSpecifier(
+                  t.identifier(applyFSPropertiesWithRef),
+                  t.identifier(applyFSPropertiesWithRef)
+                ),
+              ],
+              t.stringLiteral("@fullstory/react-native")
             );
-          });
-          // Do nothing if applyFSPropertiesWithRef is already declared
-          // React Native needs to be in scope
-          if (
-            path.scope.hasBinding(applyFSPropertiesWithRef) ||
-            !hasReactNative
-          ) {
-            return;
-          }
-
-          // create applyFSPropertiesWithRef import statement
-          const applyFSImportStatement = t.importDeclaration(
-            [
-              t.importSpecifier(
-                t.identifier(applyFSPropertiesWithRef),
-                t.identifier(applyFSPropertiesWithRef)
+  
+            // add import statement to top of file
+            const [newPath] = path.unshiftContainer("body", applyFSImportStatement);
+  
+            // register import in scope
+            newPath.get("specifiers").forEach((specifier) => {
+              path.scope.registerBinding("module", specifier);
+            });
+  
+            // save import node in state
+            file.set("ourPath", newPath);
+  
+            // Add a placeholder variable bount to applyFSPropertiesWithRef to prevent
+            // unused variable deletion from other plugins (@babel/plugin-transform-typescript)
+            const placeholder = t.variableDeclaration("let", [
+              t.variableDeclarator(
+                t.identifier("handle"),
+                t.toExpression(t.identifier(applyFSPropertiesWithRef))
               ),
-            ],
-            t.stringLiteral("@fullstory/react-native")
-          );
-
-          // add import statement to top of file
-          const [newPath] = path.unshiftContainer("body", applyFSImportStatement);
-
-          // register import in scope
-          newPath.get("specifiers").forEach((specifier) => {
-            path.scope.registerBinding("module", specifier);
-          });
-
-          // save import node in state
-          file.set("ourPath", newPath);
-
-          // Add a placeholder variable bount to applyFSPropertiesWithRef to prevent
-          // unused variable deletion from other plugins (@babel/plugin-transform-typescript)
-          const placeholder = t.variableDeclaration("let", [
-            t.variableDeclarator(
-              t.identifier("handle"),
-              t.toExpression(t.identifier(applyFSPropertiesWithRef))
-            ),
-          ]);
-
-          const [placeholderPath] = path.pushContainer("body", placeholder);
-          path.scope.registerDeclaration(placeholderPath);
-
-          // save for deletion later
-          file.set("placeholder", placeholderPath);
-
-          // update scope reference paths
-          path.scope.crawl();
+            ]);
+  
+            const [placeholderPath] = path.pushContainer("body", placeholder);
+            path.scope.registerDeclaration(placeholderPath);
+  
+            // save for deletion later
+            file.set("placeholder", placeholderPath);
+  
+            // update scope reference paths
+            path.scope.crawl();
+          };
         },
 
         exit(_, { file, opts }) {
@@ -493,7 +494,28 @@ export default function({ types: t }) {
           }
         },
       },
+      CallExpression(path, { file, opts }) {
+        if (!opts.isNewArchitectureEnabled) return;
 
+        if (isReactCreateElementCall(path) && path.node.arguments.length >= 2 && t.isIdentifier(path.node.arguments[0])) {
+            // check if we support rewrite on this element
+          if (elements.includes(path.node.arguments[0].name)) {
+            const props = path.node.arguments[1];
+
+            if (t.isObjectExpression(props)) {
+              const hasRef = props.properties.some((attribute) => {
+                return attribute.key?.name === "ref";
+              })
+
+              if (!hasRef) {
+                props.properties.push(t.objectProperty(t.identifier('ref'), t.CallExpression(t.identifier(applyFSPropertiesWithRef), [])));
+                file.set("hasJSX", true);
+              }
+            }
+        
+          }
+        }
+      },
       ImportDeclaration(path, { file, opts }) {
         if (!opts.isNewArchitectureEnabled) return;
 
