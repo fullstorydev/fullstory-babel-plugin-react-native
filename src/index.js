@@ -1,18 +1,18 @@
-import * as babylon from "@babel/parser";
-import * as t from "@babel/types";
-import { isReactCreateElementCall } from "./isReactCreateElement";
+import * as babylon from '@babel/parser';
+import * as t from '@babel/types';
+import { isReactCreateElementCall } from './isReactCreateElement';
 
-const applyFSPropertiesWithRef = "applyFSPropertiesWithRef";
+const applyFSPropertiesWithRef = 'applyFSPropertiesWithRef';
 const elements = [
-  "View",
-  "Text",
-  "Image",
-  "TextInput",
-  "ScrollView",
-  "Button",
-  "Switch",
-  "FlatList",
-  "SectionList",
+  'View',
+  'Text',
+  'Image',
+  'TextInput',
+  'ScrollView',
+  'Button',
+  'Switch',
+  'FlatList',
+  'SectionList',
 ];
 
 // This is the code that we will generate for Pressability.
@@ -50,10 +50,18 @@ const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = fun
 const _onFsPressForwardCallLongPress_PressabilityCode = `this._onFsPressForward_Pressability(true)`;
 const _onFsPressForwardCallPress_PressabilityCode = `this._onFsPressForward_Pressability(false)`;
 
-const _onFsPressForward_PressabilityAst = babylon.parseExpression(_onFsPressForward_PressabilityCode, {});
-const _onFsPressForwardCallLongPress_PressabilityAst = babylon.parseExpression(_onFsPressForwardCallLongPress_PressabilityCode, {});
-const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(_onFsPressForwardCallPress_PressabilityCode, {});
-
+const _onFsPressForward_PressabilityAst = babylon.parseExpression(
+  _onFsPressForward_PressabilityCode,
+  {},
+);
+const _onFsPressForwardCallLongPress_PressabilityAst = babylon.parseExpression(
+  _onFsPressForwardCallLongPress_PressabilityCode,
+  {},
+);
+const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(
+  _onFsPressForwardCallPress_PressabilityCode,
+  {},
+);
 
 // This is the code that we will generate for Touchable.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
@@ -90,7 +98,10 @@ const _onFsPressForwardCallLongPressCode = `this._onFsPressForward(true)`;
 const _onFsPressForwardCallPressCode = `this._onFsPressForward(false)`;
 
 const _onFsPressForwardAst = babylon.parseExpression(_onFsPressForwardCode, {});
-const _onFsPressForwardCallLongPressAst = babylon.parseExpression(_onFsPressForwardCallLongPressCode, {});
+const _onFsPressForwardCallLongPressAst = babylon.parseExpression(
+  _onFsPressForwardCallLongPressCode,
+  {},
+);
 const _onFsPressForwardCallPressAst = babylon.parseExpression(_onFsPressForwardCallPressCode, {});
 
 // just for testing
@@ -104,14 +115,14 @@ function safeStringify(obj, indent = 2) {
           ? undefined // Duplicate reference found, discard key
           : cache.push(value) && value // Store value in our collection
         : value,
-    indent
+    indent,
   );
   cache = null;
   return retVal;
 }
 
 function addFullStoryPressHandlerDeclaration(props) {
-  const prop =  {};
+  const prop = {};
   prop.type = 'ObjectProperty';
   prop.key = t.identifier('onFsPressForward');
   prop.value = {};
@@ -119,9 +130,15 @@ function addFullStoryPressHandlerDeclaration(props) {
   prop.value.type = 'FunctionTypeAnnotation';
   prop.value.params = [];
   prop.value.params.push(t.functionTypeParam(t.identifier('reactTag'), t.numberTypeAnnotation()));
-  prop.value.params.push(t.functionTypeParam(t.identifier('isLongPress'), t.booleanTypeAnnotation()));
-  prop.value.params.push(t.functionTypeParam(t.identifier('hasPressHandler'), t.booleanTypeAnnotation()));
-  prop.value.params.push(t.functionTypeParam(t.identifier('hasLongPressHandler'), t.booleanTypeAnnotation()));
+  prop.value.params.push(
+    t.functionTypeParam(t.identifier('isLongPress'), t.booleanTypeAnnotation()),
+  );
+  prop.value.params.push(
+    t.functionTypeParam(t.identifier('hasPressHandler'), t.booleanTypeAnnotation()),
+  );
+  prop.value.params.push(
+    t.functionTypeParam(t.identifier('hasLongPressHandler'), t.booleanTypeAnnotation()),
+  );
 
   prop.value.rest = null;
   prop.value.returnType = t.voidTypeAnnotation();
@@ -135,23 +152,23 @@ function addFullStoryPressHandlerDeclaration(props) {
 }
 
 function addFullStoryProperties(properties) {
-    // add fsAttribute
-    properties.push(t.objectProperty(t.identifier('fsAttribute'), t.booleanLiteral(true)));
+  // add fsAttribute
+  properties.push(t.objectProperty(t.identifier('fsAttribute'), t.booleanLiteral(true)));
 
-    // add fsClass
-    properties.push(t.objectProperty(t.identifier('fsClass'), t.booleanLiteral(true)));
+  // add fsClass
+  properties.push(t.objectProperty(t.identifier('fsClass'), t.booleanLiteral(true)));
 
-    // add fsTagName
-    properties.push(t.objectProperty(t.identifier('fsTagName'), t.booleanLiteral(true)));
+  // add fsTagName
+  properties.push(t.objectProperty(t.identifier('fsTagName'), t.booleanLiteral(true)));
 
-    // add dataComponent
-    properties.push(t.objectProperty(t.identifier('dataComponent'), t.booleanLiteral(true)));
+  // add dataComponent
+  properties.push(t.objectProperty(t.identifier('dataComponent'), t.booleanLiteral(true)));
 
-    // add dataElement
-    properties.push(t.objectProperty(t.identifier('dataElement'), t.booleanLiteral(true)));
+  // add dataElement
+  properties.push(t.objectProperty(t.identifier('dataElement'), t.booleanLiteral(true)));
 
-    // add dataSourceFile
-    properties.push(t.objectProperty(t.identifier('dataSourceFile'), t.booleanLiteral(true)));
+  // add dataSourceFile
+  properties.push(t.objectProperty(t.identifier('dataSourceFile'), t.booleanLiteral(true)));
 }
 
 function fixReactNativeViewConfig(path) {
@@ -162,7 +179,13 @@ function fixReactNativeViewConfig(path) {
 
   const declaration = path.node.declarations[0];
   // validate that there is a name node and its value is what we expect
-  if (!declaration.id || !declaration.id.name || (declaration.id.name !== 'ReactNativeViewConfig' && declaration.id.name !== 'PlatformBaseViewConfigIos' && declaration.id.name !== 'PlatformBaseViewConfigAndroid')) {
+  if (
+    !declaration.id ||
+    !declaration.id.name ||
+    (declaration.id.name !== 'ReactNativeViewConfig' &&
+      declaration.id.name !== 'PlatformBaseViewConfigIos' &&
+      declaration.id.name !== 'PlatformBaseViewConfigAndroid')
+  ) {
     return;
   }
 
@@ -221,7 +244,12 @@ function fixReactNativeViewAttributes(path) {
 
 function fixUIManagerJSInterface(path) {
   // make sure that this path has a node with an id named what we expect
-  if (!path.node || !path.node.id || !path.node.id.name || path.node.id.name !== 'UIManagerJSInterface') {
+  if (
+    !path.node ||
+    !path.node.id ||
+    !path.node.id.name ||
+    path.node.id.name !== 'UIManagerJSInterface'
+  ) {
     return;
   }
 
@@ -249,7 +277,12 @@ function fixPressability(t, path) {
   }
 
   // make sure that the path has a body node with a body array
-  if (!path.node.body || !path.node.body.body || !path.node.body.body || !path.node.body.body.length) {
+  if (
+    !path.node.body ||
+    !path.node.body.body ||
+    !path.node.body.body ||
+    !path.node.body.body.length
+  ) {
     return;
   }
 
@@ -259,7 +292,10 @@ function fixPressability(t, path) {
   path.traverse({
     // test out the Object properties
     ClassMethod(classMethodPath) {
-      if (classMethodPath.node.key && classMethodPath.node.key.name == '_performTransitionSideEffects') {
+      if (
+        classMethodPath.node.key &&
+        classMethodPath.node.key.name == '_performTransitionSideEffects'
+      ) {
         // this method is named `_performTransitionSideEffects`, so traverse the body
         classMethodPath.traverse({
           CallExpression(callPath) {
@@ -267,17 +303,32 @@ function fixPressability(t, path) {
               var name = callPath.node.callee.name;
               if (name == 'onLongPress') {
                 // get the parent statement and insert the call after
-                callPath.getStatementParent().insertAfter(t.expressionStatement(_onFsPressForwardCallLongPress_PressabilityAst));
+                callPath
+                  .getStatementParent()
+                  .insertAfter(
+                    t.expressionStatement(_onFsPressForwardCallLongPress_PressabilityAst),
+                  );
               } else if (name == 'onPress') {
                 // get the parent statement and insert the call after
-                callPath.getStatementParent().insertAfter(t.expressionStatement(_onFsPressForwardCallPress_PressabilityAst));
+                callPath
+                  .getStatementParent()
+                  .insertAfter(t.expressionStatement(_onFsPressForwardCallPress_PressabilityAst));
               }
             }
           },
         });
 
         // now add the new ClassMethod to the bodyArray
-        bodyArray.push(t.classMethod("method", t.identifier("_onFsPressForward_Pressability"), _onFsPressForward_PressabilityAst.right.params, _onFsPressForward_PressabilityAst.right.body, false, false));
+        bodyArray.push(
+          t.classMethod(
+            'method',
+            t.identifier('_onFsPressForward_Pressability'),
+            _onFsPressForward_PressabilityAst.right.params,
+            _onFsPressForward_PressabilityAst.right.body,
+            false,
+            false,
+          ),
+        );
       } else {
         // skip further processing on this object property
         classMethodPath.skip();
@@ -323,10 +374,14 @@ function fixTouchableMixin(t, path) {
                   var name = callPath.node.callee.property.name;
                   if (name == 'touchableHandleLongPress') {
                     // get the parent statement and insert the call after
-                    callPath.getStatementParent().insertAfter(t.expressionStatement(_onFsPressForwardCallLongPressAst));
+                    callPath
+                      .getStatementParent()
+                      .insertAfter(t.expressionStatement(_onFsPressForwardCallLongPressAst));
                   } else if (name == 'touchableHandlePress') {
                     // get the parent statement and insert the call after
-                    callPath.getStatementParent().insertAfter(t.expressionStatement(_onFsPressForwardCallPressAst));
+                    callPath
+                      .getStatementParent()
+                      .insertAfter(t.expressionStatement(_onFsPressForwardCallPressAst));
                   }
                 }
               },
@@ -335,7 +390,9 @@ function fixTouchableMixin(t, path) {
         });
 
         // now add the new ObjectProperty to the parent path
-        mixin.init.properties.push(t.objectProperty(t.identifier("_onFsPressForward"), _onFsPressForwardAst.right));
+        mixin.init.properties.push(
+          t.objectProperty(t.identifier('_onFsPressForward'), _onFsPressForwardAst.right),
+        );
       } else {
         // skip further processing on this object property
         mixinPath.skip();
@@ -346,64 +403,65 @@ function fixTouchableMixin(t, path) {
 
 function isReactFragment(openingElement) {
   if (openingElement.isJSXFragment()) {
-    return true
+    return true;
   }
 
-  if (
-    !openingElement.node ||
-    !openingElement.node.name
-  ) return
+  if (!openingElement.node || !openingElement.node.name) return;
 
-  if (openingElement.node.name.name === 'Fragment' ||
+  if (
+    openingElement.node.name.name === 'Fragment' ||
     openingElement.node.name.name === 'React.Fragment'
-  ) return true;
+  )
+    return true;
 
   if (
     !openingElement.node.name.type ||
     !openingElement.node.name.object ||
     !openingElement.node.name.property
-  ) return
+  )
+    return;
 
   return (
     openingElement.node.name.type === 'JSXMemberExpression' &&
     openingElement.node.name.object.name === 'React' &&
     openingElement.node.name.property.name === 'Fragment'
-  )
+  );
 }
 
 function extendExistingRef(path) {
   // process existing ref value
-  if (path.node.name.name === "ref") {
+  if (path.node.name.name === 'ref') {
     // ignore if the ref value is already applyFSPropertiesWithRef
     if (
       t.isJSXExpressionContainer(path.node.value) &&
       !(
         t.isCallExpression(path.node.value.expression) &&
-        path.node.value.expression.callee.name ===
-          applyFSPropertiesWithRef
+        path.node.value.expression.callee.name === applyFSPropertiesWithRef
       )
     ) {
       // only process refs on base components and applyFSPropertiesWithRef must be imported
-      if(!elements.includes(path.parent.name.name) || !path.scope.hasBinding(applyFSPropertiesWithRef)) return;
+      if (
+        !elements.includes(path.parent.name.name) ||
+        !path.scope.hasBinding(applyFSPropertiesWithRef)
+      )
+        return;
 
       const originalRef = path.node.value.expression;
 
       path.replaceWith(
         t.jsxAttribute(
-          t.jsxIdentifier("ref"),
+          t.jsxIdentifier('ref'),
           t.JSXExpressionContainer(
-            t.CallExpression(t.identifier(applyFSPropertiesWithRef), [
-              originalRef,
-            ])
-          )
-        )
+            t.CallExpression(t.identifier(applyFSPropertiesWithRef), [originalRef]),
+          ),
+        ),
       );
     }
   }
 }
 
 /* eslint-disable complexity */
-export default function({ types: t }) {
+export default function ({ types: t }) {
   return {
     name: 'fullstory-react-native',
     visitor: {
@@ -415,67 +473,65 @@ export default function({ types: t }) {
       Program: {
         enter(path, { file, opts }) {
           if (opts.isNewArchitectureEnabled) {
-            const hasReactNativeOrReact = path.node.body.some((x) => {
+            const hasReactNativeOrReact = path.node.body.some(x => {
               return (
-                t.isImportDeclaration(x) && (x.source.value === "react-native" || x.source.value === "react")
+                t.isImportDeclaration(x) &&
+                (x.source.value === 'react-native' || x.source.value === 'react')
               );
             });
             // Do nothing if applyFSPropertiesWithRef is already declared
             // React Native needs to be in scope
-            if (
-              path.scope.hasBinding(applyFSPropertiesWithRef) ||
-              !hasReactNativeOrReact
-            ) {
+            if (path.scope.hasBinding(applyFSPropertiesWithRef) || !hasReactNativeOrReact) {
               return;
             }
-  
+
             // create applyFSPropertiesWithRef import statement
             const applyFSImportStatement = t.importDeclaration(
               [
                 t.importSpecifier(
                   t.identifier(applyFSPropertiesWithRef),
-                  t.identifier(applyFSPropertiesWithRef)
+                  t.identifier(applyFSPropertiesWithRef),
                 ),
               ],
-              t.stringLiteral("@fullstory/react-native")
+              t.stringLiteral('@fullstory/react-native'),
             );
-  
+
             // add import statement to top of file
-            const [newPath] = path.unshiftContainer("body", applyFSImportStatement);
-  
+            const [newPath] = path.unshiftContainer('body', applyFSImportStatement);
+
             // register import in scope
-            newPath.get("specifiers").forEach((specifier) => {
-              path.scope.registerBinding("module", specifier);
+            newPath.get('specifiers').forEach(specifier => {
+              path.scope.registerBinding('module', specifier);
             });
-  
+
             // save import node in state
-            file.set("ourPath", newPath);
-  
+            file.set('ourPath', newPath);
+
             // Add a placeholder variable bount to applyFSPropertiesWithRef to prevent
             // unused variable deletion from other plugins (@babel/plugin-transform-typescript)
-            const placeholder = t.variableDeclaration("let", [
+            const placeholder = t.variableDeclaration('let', [
               t.variableDeclarator(
-                t.identifier("handle"),
-                t.toExpression(t.identifier(applyFSPropertiesWithRef))
+                t.identifier('handle'),
+                t.toExpression(t.identifier(applyFSPropertiesWithRef)),
               ),
             ]);
-  
-            const [placeholderPath] = path.pushContainer("body", placeholder);
+
+            const [placeholderPath] = path.pushContainer('body', placeholder);
             path.scope.registerDeclaration(placeholderPath);
-  
+
             // save for deletion later
-            file.set("placeholder", placeholderPath);
-  
+            file.set('placeholder', placeholderPath);
+
             // update scope reference paths
             path.scope.crawl();
-          };
+          }
         },
 
         exit(_, { file, opts }) {
           if (!opts.isNewArchitectureEnabled) return;
 
           // delete placeholder variable
-          const placeholder = file.get("placeholder");
+          const placeholder = file.get('placeholder');
 
           if (placeholder) {
             placeholder.remove();
@@ -485,34 +541,42 @@ export default function({ types: t }) {
           // the program, then we just remove it. There's an edge case, where
           // some other plugin could add JSX in its `Program.exit`, so our
           // `JSXOpeningElement` will trigger only after this method
-          const ourPath = file.get("ourPath");
-          if (ourPath && !file.get("hasJSX")) {
+          const ourPath = file.get('ourPath');
+          if (ourPath && !file.get('hasJSX')) {
             if (!ourPath.removed) {
               ourPath.remove();
             }
-            file.set("ourPath", undefined);
+            file.set('ourPath', undefined);
           }
         },
       },
       CallExpression(path, { file, opts }) {
         if (!opts.isNewArchitectureEnabled) return;
 
-        if (isReactCreateElementCall(path) && path.node.arguments.length >= 2 && t.isIdentifier(path.node.arguments[0])) {
-            // check if we support rewrite on this element
+        if (
+          isReactCreateElementCall(path) &&
+          path.node.arguments.length >= 2 &&
+          t.isIdentifier(path.node.arguments[0])
+        ) {
+          // check if we support rewrite on this element
           if (elements.includes(path.node.arguments[0].name)) {
             const props = path.node.arguments[1];
 
             if (t.isObjectExpression(props)) {
-              const hasRef = props.properties.some((attribute) => {
-                return attribute.key?.name === "ref";
-              })
+              const hasRef = props.properties.some(attribute => {
+                return attribute.key?.name === 'ref';
+              });
 
               if (!hasRef) {
-                props.properties.push(t.objectProperty(t.identifier('ref'), t.CallExpression(t.identifier(applyFSPropertiesWithRef), [])));
-                file.set("hasJSX", true);
+                props.properties.push(
+                  t.objectProperty(
+                    t.identifier('ref'),
+                    t.CallExpression(t.identifier(applyFSPropertiesWithRef), []),
+                  ),
+                );
+                file.set('hasJSX', true);
               }
             }
-        
           }
         }
       },
@@ -521,8 +585,8 @@ export default function({ types: t }) {
 
         // check if applyFSPropertiesWithRef is imported
         if (
-          path.node.specifiers.every((x) => {
-            return x.local.name !== "applyFSPropertiesWithRef";
+          path.node.specifiers.every(x => {
+            return x.local.name !== 'applyFSPropertiesWithRef';
           })
         ) {
           return;
@@ -530,12 +594,12 @@ export default function({ types: t }) {
 
         // If our import is still intact and we encounter some other import
         // which also imports `applyFSPropertiesWithRef`, then we remove ours.
-        const ourPath = file.get("ourPath");
+        const ourPath = file.get('ourPath');
         if (ourPath && path !== ourPath) {
           if (!ourPath.removed) {
             ourPath.remove();
           }
-          file.set("ourPath", undefined);
+          file.set('ourPath', undefined);
         }
       },
 
@@ -543,29 +607,29 @@ export default function({ types: t }) {
         if (!opts.isNewArchitectureEnabled) return;
         // do not annotate fragments
         if (isReactFragment(path)) return;
-      
+
         // only annotate specific base components
         if (!elements.includes(path.node.name.name)) return;
 
         // only annotate when applyFSPropertiesWithRef is in scope
         if (!path.scope.hasBinding(applyFSPropertiesWithRef)) return;
-        
-        file.set("hasJSX", true);
+
+        file.set('hasJSX', true);
 
         // check if Component has any `ref` value
-        const hasRef = path.get("attributes").some((attribute) => {
-          return attribute.node.name?.name === "ref";
+        const hasRef = path.get('attributes').some(attribute => {
+          return attribute.node.name?.name === 'ref';
         });
 
         if (!hasRef) {
           // create a new `ref` value
           path.node.attributes.push(
             t.jsxAttribute(
-              t.jsxIdentifier("ref"),
+              t.jsxIdentifier('ref'),
               t.JSXExpressionContainer(
-                t.CallExpression(t.identifier(applyFSPropertiesWithRef), [])
-              )
-            )
+                t.CallExpression(t.identifier(applyFSPropertiesWithRef), []),
+              ),
+            ),
           );
         }
       },
@@ -584,32 +648,33 @@ export default function({ types: t }) {
         }
 
         // disable view optimization for only View component
-        if (path.parent.name.name !== 'View') return; 
+        if (path.parent.name.name !== 'View') return;
 
         // must be manually annotated with at least one fs attribute
         if (
           path.node.name.name !== 'fsClass' &&
-          path.node.name.name !== 'fsTagName' && 
+          path.node.name.name !== 'fsTagName' &&
           path.node.name.name !== 'fsAttribute'
         ) {
           return;
         }
-        
+
         const isViewOptimizationDisabled = path.container.some(attribute => {
-          return t.isJSXIdentifier(attribute.name, { name: 'viewID' }) ||
-          t.isJSXIdentifier(attribute.name, { name: 'id' }) || 
-          t.isJSXIdentifier(attribute.name, { name: 'nativeID' });
-        })
+          return (
+            t.isJSXIdentifier(attribute.name, { name: 'viewID' }) ||
+            t.isJSXIdentifier(attribute.name, { name: 'id' }) ||
+            t.isJSXIdentifier(attribute.name, { name: 'nativeID' })
+          );
+        });
 
         if (isViewOptimizationDisabled) {
           return;
         }
-        
-				path.insertAfter(t.jsxAttribute(
-          t.jsxIdentifier('nativeID'),
-          t.stringLiteral('__FS_NATIVEID')
-        ))
-			}
+
+        path.insertAfter(
+          t.jsxAttribute(t.jsxIdentifier('nativeID'), t.stringLiteral('__FS_NATIVEID')),
+        );
+      },
     },
   };
 }
