@@ -20,94 +20,94 @@ const ReactNativeViewConfig = {
     topBlur: {
       phasedRegistrationNames: {
         bubbled: 'onBlur',
-        captured: 'onBlurCapture'
-      }
+        captured: 'onBlurCapture',
+      },
     },
     topChange: {
       phasedRegistrationNames: {
         bubbled: 'onChange',
-        captured: 'onChangeCapture'
-      }
+        captured: 'onChangeCapture',
+      },
     },
     topEndEditing: {
       phasedRegistrationNames: {
         bubbled: 'onEndEditing',
-        captured: 'onEndEditingCapture'
-      }
+        captured: 'onEndEditingCapture',
+      },
     },
     topFocus: {
       phasedRegistrationNames: {
         bubbled: 'onFocus',
-        captured: 'onFocusCapture'
-      }
+        captured: 'onFocusCapture',
+      },
     },
     topKeyPress: {
       phasedRegistrationNames: {
         bubbled: 'onKeyPress',
-        captured: 'onKeyPressCapture'
-      }
+        captured: 'onKeyPressCapture',
+      },
     },
     topPress: {
       phasedRegistrationNames: {
         bubbled: 'onPress',
-        captured: 'onPressCapture'
-      }
+        captured: 'onPressCapture',
+      },
     },
     topSubmitEditing: {
       phasedRegistrationNames: {
         bubbled: 'onSubmitEditing',
-        captured: 'onSubmitEditingCapture'
-      }
+        captured: 'onSubmitEditingCapture',
+      },
     },
     topTouchCancel: {
       phasedRegistrationNames: {
         bubbled: 'onTouchCancel',
-        captured: 'onTouchCancelCapture'
-      }
+        captured: 'onTouchCancelCapture',
+      },
     },
     topTouchEnd: {
       phasedRegistrationNames: {
         bubbled: 'onTouchEnd',
-        captured: 'onTouchEndCapture'
-      }
+        captured: 'onTouchEndCapture',
+      },
     },
     topTouchMove: {
       phasedRegistrationNames: {
         bubbled: 'onTouchMove',
-        captured: 'onTouchMoveCapture'
-      }
+        captured: 'onTouchMoveCapture',
+      },
     },
     topTouchStart: {
       phasedRegistrationNames: {
         bubbled: 'onTouchStart',
-        captured: 'onTouchStartCapture'
-      }
-    }
+        captured: 'onTouchStartCapture',
+      },
+    },
   },
   directEventTypes: {
     topAccessibilityAction: {
-      registrationName: 'onAccessibilityAction'
+      registrationName: 'onAccessibilityAction',
     },
     topAccessibilityEscape: {
-      registrationName: 'onAccessibilityEscape'
+      registrationName: 'onAccessibilityEscape',
     },
     topAccessibilityTap: {
-      registrationName: 'onAccessibilityTap'
+      registrationName: 'onAccessibilityTap',
     },
     topLayout: {
-      registrationName: 'onLayout'
+      registrationName: 'onLayout',
     },
     topMagicTap: {
-      registrationName: 'onMagicTap'
+      registrationName: 'onMagicTap',
     },
     // Events for react-native-gesture-handler (T45765076)
     // Remove once this library can handle JS View Configs
     onGestureHandlerEvent: {
-      registrationName: 'onGestureHandlerEvent'
+      registrationName: 'onGestureHandlerEvent',
     },
     onGestureHandlerStateChange: {
-      registrationName: 'onGestureHandlerStateChange'
-    }
+      registrationName: 'onGestureHandlerStateChange',
+    },
   },
   validAttributes: {
     accessibilityActions: true,
@@ -303,15 +303,15 @@ const ReactNativeViewConfig = {
       translateY: true,
       width: true,
       writingDirection: true,
-      zIndex: true
+      zIndex: true,
     },
     testID: true,
     top: true,
     translateX: true,
     translateY: true,
     width: true,
-    zIndex: true
-  }
+    zIndex: true,
+  },
 };
 
 module.exports = ReactNativeViewConfig;

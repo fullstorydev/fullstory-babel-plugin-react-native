@@ -11,7 +11,6 @@
 'use strict';
 
 import ReactNativeViewViewConfigAndroid from './ReactNativeViewViewConfigAndroid';
-
 const ReactNativeViewConfig = {
   uiViewClassName: 'RCTView',
   baseModuleName: null,
@@ -20,94 +19,94 @@ const ReactNativeViewConfig = {
     topBlur: {
       phasedRegistrationNames: {
         bubbled: 'onBlur',
-        captured: 'onBlurCapture'
-      }
+        captured: 'onBlurCapture',
+      },
     },
     topChange: {
       phasedRegistrationNames: {
         bubbled: 'onChange',
-        captured: 'onChangeCapture'
-      }
+        captured: 'onChangeCapture',
+      },
     },
     topEndEditing: {
       phasedRegistrationNames: {
         bubbled: 'onEndEditing',
-        captured: 'onEndEditingCapture'
-      }
+        captured: 'onEndEditingCapture',
+      },
     },
     topFocus: {
       phasedRegistrationNames: {
         bubbled: 'onFocus',
-        captured: 'onFocusCapture'
-      }
+        captured: 'onFocusCapture',
+      },
     },
     topKeyPress: {
       phasedRegistrationNames: {
         bubbled: 'onKeyPress',
-        captured: 'onKeyPressCapture'
-      }
+        captured: 'onKeyPressCapture',
+      },
     },
     topPress: {
       phasedRegistrationNames: {
         bubbled: 'onPress',
-        captured: 'onPressCapture'
-      }
+        captured: 'onPressCapture',
+      },
     },
     topSubmitEditing: {
       phasedRegistrationNames: {
         bubbled: 'onSubmitEditing',
-        captured: 'onSubmitEditingCapture'
-      }
+        captured: 'onSubmitEditingCapture',
+      },
     },
     topTouchCancel: {
       phasedRegistrationNames: {
         bubbled: 'onTouchCancel',
-        captured: 'onTouchCancelCapture'
-      }
+        captured: 'onTouchCancelCapture',
+      },
     },
     topTouchEnd: {
       phasedRegistrationNames: {
         bubbled: 'onTouchEnd',
-        captured: 'onTouchEndCapture'
-      }
+        captured: 'onTouchEndCapture',
+      },
     },
     topTouchMove: {
       phasedRegistrationNames: {
         bubbled: 'onTouchMove',
-        captured: 'onTouchMoveCapture'
-      }
+        captured: 'onTouchMoveCapture',
+      },
     },
     topTouchStart: {
       phasedRegistrationNames: {
         bubbled: 'onTouchStart',
-        captured: 'onTouchStartCapture'
-      }
-    }
+        captured: 'onTouchStartCapture',
+      },
+    },
   },
   directEventTypes: {
     topAccessibilityAction: {
-      registrationName: 'onAccessibilityAction'
+      registrationName: 'onAccessibilityAction',
     },
     topAccessibilityEscape: {
-      registrationName: 'onAccessibilityEscape'
+      registrationName: 'onAccessibilityEscape',
     },
     topAccessibilityTap: {
-      registrationName: 'onAccessibilityTap'
+      registrationName: 'onAccessibilityTap',
     },
     topLayout: {
-      registrationName: 'onLayout'
+      registrationName: 'onLayout',
     },
     topMagicTap: {
-      registrationName: 'onMagicTap'
+      registrationName: 'onMagicTap',
     },
     // Events for react-native-gesture-handler (T45765076)
     // Remove once this library can handle JS View Configs
     onGestureHandlerEvent: {
-      registrationName: 'onGestureHandlerEvent'
+      registrationName: 'onGestureHandlerEvent',
     },
     onGestureHandlerStateChange: {
-      registrationName: 'onGestureHandlerStateChange'
-    }
+      registrationName: 'onGestureHandlerStateChange',
+    },
   },
   validAttributes: {
     accessibilityActions: true,
@@ -126,25 +125,41 @@ const ReactNativeViewConfig = {
     alignSelf: true,
     aspectRatio: true,
     backfaceVisibility: true,
-    backgroundColor: { process: require('../../StyleSheet/processColor') },
-    borderBottomColor: { process: require('../../StyleSheet/processColor') },
+    backgroundColor: {
+      process: require('../../StyleSheet/processColor'),
+    },
+    borderBottomColor: {
+      process: require('../../StyleSheet/processColor'),
+    },
     borderBottomEndRadius: true,
     borderBottomLeftRadius: true,
     borderBottomRightRadius: true,
     borderBottomStartRadius: true,
     borderBottomWidth: true,
-    borderColor: { process: require('../../StyleSheet/processColor') },
-    borderEndColor: { process: require('../../StyleSheet/processColor') },
+    borderColor: {
+      process: require('../../StyleSheet/processColor'),
+    },
+    borderEndColor: {
+      process: require('../../StyleSheet/processColor'),
+    },
     borderEndWidth: true,
-    borderLeftColor: { process: require('../../StyleSheet/processColor') },
+    borderLeftColor: {
+      process: require('../../StyleSheet/processColor'),
+    },
     borderLeftWidth: true,
     borderRadius: true,
-    borderRightColor: { process: require('../../StyleSheet/processColor') },
+    borderRightColor: {
+      process: require('../../StyleSheet/processColor'),
+    },
     borderRightWidth: true,
-    borderStartColor: { process: require('../../StyleSheet/processColor') },
+    borderStartColor: {
+      process: require('../../StyleSheet/processColor'),
+    },
     borderStartWidth: true,
     borderStyle: true,
-    borderTopColor: { process: require('../../StyleSheet/processColor') },
+    borderTopColor: {
+      process: require('../../StyleSheet/processColor'),
+    },
     borderTopEndRadius: true,
     borderTopLeftRadius: true,
     borderTopRightRadius: true,
@@ -303,7 +318,7 @@ const ReactNativeViewConfig = {
       translateY: true,
       width: true,
       writingDirection: true,
-      zIndex: true
+      zIndex: true,
     },
     testID: true,
     top: true,
@@ -316,8 +331,7 @@ const ReactNativeViewConfig = {
     fsTagName: true,
     dataComponent: true,
     dataElement: true,
-    dataSourceFile: true
-  }
+    dataSourceFile: true,
+  },
 };
-
 module.exports = ReactNativeViewConfig;

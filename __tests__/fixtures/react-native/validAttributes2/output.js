@@ -11,7 +11,6 @@
 'use strict';
 
 const ReactNativeStyleAttributes = require('./ReactNativeStyleAttributes');
-
 const UIView = {
   pointerEvents: true,
   accessible: true,
@@ -35,10 +34,14 @@ const UIView = {
   collapsable: true,
   needsOffscreenAlphaCompositing: true,
   style: ReactNativeStyleAttributes,
+  fsAttribute: true,
+  fsClass: true,
+  fsTagName: true,
+  dataComponent: true,
+  dataElement: true,
+  dataSourceFile: true,
 };
-
 const RCTView = {
-
   // This is a special performance property exposed by RCTView and useful for
   // scrolling content when there are many subviews, most of which are offscreen.
   // For this property to be effective, it must be applied to a view that contains
@@ -46,10 +49,8 @@ const RCTView = {
   // overflow: hidden, as should the containing view (or one of its superviews).
   removeClippedSubviews: true,
 };
-
 const ReactNativeViewAttributes = {
   UIView: UIView,
   RCTView: RCTView,
 };
-
 module.exports = ReactNativeViewAttributes;

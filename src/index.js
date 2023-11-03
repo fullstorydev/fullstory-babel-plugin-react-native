@@ -1,5 +1,5 @@
-import * as babylon from "@babel/parser";
-import * as t from "@babel/types";
+import * as babylon from '@babel/parser';
+import * as t from '@babel/types';
 
 // This is the code that we will generate for Pressability.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
@@ -36,10 +36,18 @@ const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = fun
 const _onFsPressForwardCallLongPress_PressabilityCode = `this._onFsPressForward_Pressability(true)`;
 const _onFsPressForwardCallPress_PressabilityCode = `this._onFsPressForward_Pressability(false)`;
 
-const _onFsPressForward_PressabilityAst = babylon.parseExpression(_onFsPressForward_PressabilityCode, {});
-const _onFsPressForwardCallLongPress_PressabilityAst = babylon.parseExpression(_onFsPressForwardCallLongPress_PressabilityCode, {});
-const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(_onFsPressForwardCallPress_PressabilityCode, {});
-
+const _onFsPressForward_PressabilityAst = babylon.parseExpression(
+  _onFsPressForward_PressabilityCode,
+  {},
+);
+const _onFsPressForwardCallLongPress_PressabilityAst = babylon.parseExpression(
+  _onFsPressForwardCallLongPress_PressabilityCode,
+  {},
+);
+const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(
+  _onFsPressForwardCallPress_PressabilityCode,
+  {},
+);
 
 // This is the code that we will generate for Touchable.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
@@ -76,7 +84,10 @@ const _onFsPressForwardCallLongPressCode = `this._onFsPressForward(true)`;
 const _onFsPressForwardCallPressCode = `this._onFsPressForward(false)`;
 
 const _onFsPressForwardAst = babylon.parseExpression(_onFsPressForwardCode, {});
-const _onFsPressForwardCallLongPressAst = babylon.parseExpression(_onFsPressForwardCallLongPressCode, {});
+const _onFsPressForwardCallLongPressAst = babylon.parseExpression(
+  _onFsPressForwardCallLongPressCode,
+  {},
+);
 const _onFsPressForwardCallPressAst = babylon.parseExpression(_onFsPressForwardCallPressCode, {});
 
 // just for testing
@@ -90,14 +101,14 @@ function safeStringify(obj, indent = 2) {
           ? undefined // Duplicate reference found, discard key
           : cache.push(value) && value // Store value in our collection
         : value,
-    indent
+    indent,
   );
   cache = null;
   return retVal;
 }
 
 function addFullStoryPressHandlerDeclaration(props) {
-  const prop =  {};
+  const prop = {};
   prop.type = 'ObjectProperty';
   prop.key = t.identifier('onFsPressForward');
   prop.value = {};
@@ -105,9 +116,15 @@ function addFullStoryPressHandlerDeclaration(props) {
   prop.value.type = 'FunctionTypeAnnotation';
   prop.value.params = [];
   prop.value.params.push(t.functionTypeParam(t.identifier('reactTag'), t.numberTypeAnnotation()));
-  prop.value.params.push(t.functionTypeParam(t.identifier('isLongPress'), t.booleanTypeAnnotation()));
-  prop.value.params.push(t.functionTypeParam(t.identifier('hasPressHandler'), t.booleanTypeAnnotation()));
-  prop.value.params.push(t.functionTypeParam(t.identifier('hasLongPressHandler'), t.booleanTypeAnnotation()));
+  prop.value.params.push(
+    t.functionTypeParam(t.identifier('isLongPress'), t.booleanTypeAnnotation()),
+  );
+  prop.value.params.push(
+    t.functionTypeParam(t.identifier('hasPressHandler'), t.booleanTypeAnnotation()),
+  );
+  prop.value.params.push(
+    t.functionTypeParam(t.identifier('hasLongPressHandler'), t.booleanTypeAnnotation()),
+  );
 
   prop.value.rest = null;
   prop.value.returnType = t.voidTypeAnnotation();
@@ -121,23 +138,23 @@ function addFullStoryPressHandlerDeclaration(props) {
 }
 
 function addFullStoryProperties(properties) {
-    // add fsAttribute
-    properties.push(t.objectProperty(t.identifier('fsAttribute'), t.booleanLiteral(true)));
+  // add fsAttribute
+  properties.push(t.objectProperty(t.identifier('fsAttribute'), t.booleanLiteral(true)));
 
-    // add fsClass
-    properties.push(t.objectProperty(t.identifier('fsClass'), t.booleanLiteral(true)));
+  // add fsClass
+  properties.push(t.objectProperty(t.identifier('fsClass'), t.booleanLiteral(true)));
 
-    // add fsTagName
-    properties.push(t.objectProperty(t.identifier('fsTagName'), t.booleanLiteral(true)));
+  // add fsTagName
+  properties.push(t.objectProperty(t.identifier('fsTagName'), t.booleanLiteral(true)));
 
-    // add dataComponent
-    properties.push(t.objectProperty(t.identifier('dataComponent'), t.booleanLiteral(true)));
+  // add dataComponent
+  properties.push(t.objectProperty(t.identifier('dataComponent'), t.booleanLiteral(true)));
 
-    // add dataElement
-    properties.push(t.objectProperty(t.identifier('dataElement'), t.booleanLiteral(true)));
+  // add dataElement
+  properties.push(t.objectProperty(t.identifier('dataElement'), t.booleanLiteral(true)));
 
-    // add dataSourceFile
-    properties.push(t.objectProperty(t.identifier('dataSourceFile'), t.booleanLiteral(true)));
+  // add dataSourceFile
+  properties.push(t.objectProperty(t.identifier('dataSourceFile'), t.booleanLiteral(true)));
 }
 
 function fixReactNativeViewConfig(path) {
@@ -148,7 +165,13 @@ function fixReactNativeViewConfig(path) {
 
   const declaration = path.node.declarations[0];
   // validate that there is a name node and its value is what we expect
-  if (!declaration.id || !declaration.id.name || (declaration.id.name !== 'ReactNativeViewConfig' && declaration.id.name !== 'PlatformBaseViewConfigIos' && declaration.id.name !== 'PlatformBaseViewConfigAndroid')) {
+  if (
+    !declaration.id ||
+    !declaration.id.name ||
+    (declaration.id.name !== 'ReactNativeViewConfig' &&
+      declaration.id.name !== 'PlatformBaseViewConfigIos' &&
+      declaration.id.name !== 'PlatformBaseViewConfigAndroid')
+  ) {
     return;
   }
 
@@ -207,7 +230,12 @@ function fixReactNativeViewAttributes(path) {
 
 function fixUIManagerJSInterface(path) {
   // make sure that this path has a node with an id named what we expect
-  if (!path.node || !path.node.id || !path.node.id.name || path.node.id.name !== 'UIManagerJSInterface') {
+  if (
+    !path.node ||
+    !path.node.id ||
+    !path.node.id.name ||
+    path.node.id.name !== 'UIManagerJSInterface'
+  ) {
     return;
   }
 
@@ -235,7 +263,12 @@ function fixPressability(t, path) {
   }
 
   // make sure that the path has a body node with a body array
-  if (!path.node.body || !path.node.body.body || !path.node.body.body || !path.node.body.body.length) {
+  if (
+    !path.node.body ||
+    !path.node.body.body ||
+    !path.node.body.body ||
+    !path.node.body.body.length
+  ) {
     return;
   }
 
@@ -245,7 +278,10 @@ function fixPressability(t, path) {
   path.traverse({
     // test out the Object properties
     ClassMethod(classMethodPath) {
-      if (classMethodPath.node.key && classMethodPath.node.key.name == '_performTransitionSideEffects') {
+      if (
+        classMethodPath.node.key &&
+        classMethodPath.node.key.name == '_performTransitionSideEffects'
+      ) {
         // this method is named `_performTransitionSideEffects`, so traverse the body
         classMethodPath.traverse({
           CallExpression(callPath) {
@@ -253,17 +289,32 @@ function fixPressability(t, path) {
               var name = callPath.node.callee.name;
               if (name == 'onLongPress') {
                 // get the parent statement and insert the call after
-                callPath.getStatementParent().insertAfter(t.expressionStatement(_onFsPressForwardCallLongPress_PressabilityAst));
+                callPath
+                  .getStatementParent()
+                  .insertAfter(
+                    t.expressionStatement(_onFsPressForwardCallLongPress_PressabilityAst),
+                  );
               } else if (name == 'onPress') {
                 // get the parent statement and insert the call after
-                callPath.getStatementParent().insertAfter(t.expressionStatement(_onFsPressForwardCallPress_PressabilityAst));
+                callPath
+                  .getStatementParent()
+                  .insertAfter(t.expressionStatement(_onFsPressForwardCallPress_PressabilityAst));
               }
             }
           },
         });
 
         // now add the new ClassMethod to the bodyArray
-        bodyArray.push(t.classMethod("method", t.identifier("_onFsPressForward_Pressability"), _onFsPressForward_PressabilityAst.right.params, _onFsPressForward_PressabilityAst.right.body, false, false));
+        bodyArray.push(
+          t.classMethod(
+            'method',
+            t.identifier('_onFsPressForward_Pressability'),
+            _onFsPressForward_PressabilityAst.right.params,
+            _onFsPressForward_PressabilityAst.right.body,
+            false,
+            false,
+          ),
+        );
       } else {
         // skip further processing on this object property
         classMethodPath.skip();
@@ -309,10 +360,14 @@ function fixTouchableMixin(t, path) {
                   var name = callPath.node.callee.property.name;
                   if (name == 'touchableHandleLongPress') {
                     // get the parent statement and insert the call after
-                    callPath.getStatementParent().insertAfter(t.expressionStatement(_onFsPressForwardCallLongPressAst));
+                    callPath
+                      .getStatementParent()
+                      .insertAfter(t.expressionStatement(_onFsPressForwardCallLongPressAst));
                   } else if (name == 'touchableHandlePress') {
                     // get the parent statement and insert the call after
-                    callPath.getStatementParent().insertAfter(t.expressionStatement(_onFsPressForwardCallPressAst));
+                    callPath
+                      .getStatementParent()
+                      .insertAfter(t.expressionStatement(_onFsPressForwardCallPressAst));
                   }
                 }
               },
@@ -321,7 +376,9 @@ function fixTouchableMixin(t, path) {
         });
 
         // now add the new ObjectProperty to the parent path
-        mixin.init.properties.push(t.objectProperty(t.identifier("_onFsPressForward"), _onFsPressForwardAst.right));
+        mixin.init.properties.push(
+          t.objectProperty(t.identifier('_onFsPressForward'), _onFsPressForwardAst.right),
+        );
       } else {
         // skip further processing on this object property
         mixinPath.skip();
@@ -331,7 +388,7 @@ function fixTouchableMixin(t, path) {
 }
 
 /* eslint-disable complexity */
-export default function({ types: t }) {
+export default function ({ types: t }) {
   return {
     visitor: {
       /* Looks like we don't currently need to add this to the interface declaration
