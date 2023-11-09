@@ -8,6 +8,6 @@ pluginTester({
   },
   fixtures: 'fixtures',
   babelOptions: {
-    plugins: ['@babel/plugin-syntax-jsx'],
+    plugins: ['@babel/plugin-syntax-jsx', '@babel/plugin-syntax-flow'],
   },
 });
