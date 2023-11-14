@@ -633,7 +633,7 @@ export default function ({ types: t }) {
 
         const isViewOptimizationDisabled = path.container.some(attribute => {
           return (
-            t.isJSXIdentifier(attribute.name, { name: 'viewID' }) ||
+            t.isJSXIdentifier(attribute.name, { name: 'testID' }) ||
             t.isJSXIdentifier(attribute.name, { name: 'id' }) ||
             t.isJSXIdentifier(attribute.name, { name: 'nativeID' })
           );
