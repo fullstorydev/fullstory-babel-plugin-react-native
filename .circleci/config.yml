@@ -2,7 +2,7 @@ version: 2.1
 executors:
   browser-executor:
     docker:
-      - image: circleci/node:12-browsers
+      - image: cimg/node:18.18.0
     working_directory: ~/repo
 jobs:
   build-babel-plugin-react-native:
@@ -53,7 +53,7 @@ workflows:
             - build-babel-plugin-react-native
           filters:
             branches:
-              only: "master"
+              only: 'master'
       - deploy-babel-plugin-react-native:
           requires:
             - hold
