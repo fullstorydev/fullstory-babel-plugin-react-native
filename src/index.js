@@ -1,6 +1,5 @@
 import * as babylon from '@babel/parser';
 import * as t from '@babel/types';
-import { isReactCreateElementCall } from './isReactCreateElement';
 
 const applyFSPropertiesWithRef = 'applyFSPropertiesWithRef';
 const elements = [
@@ -9,10 +8,13 @@ const elements = [
   'Image',
   'TextInput',
   'ScrollView',
-  'Button',
+  'Pressable',
   'Switch',
   'FlatList',
   'SectionList',
+  'SafeAreaView',
+  'ActivityIndicator',
+  'ImageBackground',
 ];
 
 // This is the code that we will generate for Pressability.
@@ -549,36 +551,6 @@ export default function ({ types: t }) {
             file.set('ourPath', undefined);
           }
         },
-      },
-      CallExpression(path, { file, opts }) {
-        if (!opts.isNewArchitectureEnabled) return;
-
-        if (
-          isReactCreateElementCall(path) &&
-          path.node.arguments.length >= 2 &&
-          t.isIdentifier(path.node.arguments[0])
-        ) {
-          // check if we support rewrite on this element
-          if (elements.includes(path.node.arguments[0].name)) {
-            const props = path.node.arguments[1];
-
-            if (t.isObjectExpression(props)) {
-              const hasRef = props.properties.some(attribute => {
-                return attribute.key?.name === 'ref';
-              });
-
-              if (!hasRef) {
-                props.properties.push(
-                  t.objectProperty(
-                    t.identifier('ref'),
-                    t.CallExpression(t.identifier(applyFSPropertiesWithRef), []),
-                  ),
-                );
-                file.set('hasJSX', true);
-              }
-            }
-          }
-        }
       },
       ImportDeclaration(path, { file, opts }) {
         if (!opts.isNewArchitectureEnabled) return;
