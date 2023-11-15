@@ -513,7 +513,7 @@ export default function ({ types: t }) {
             // unused variable deletion from other plugins (@babel/plugin-transform-typescript)
             const placeholder = t.variableDeclaration('let', [
               t.variableDeclarator(
-                t.identifier('handle'),
+                t.identifier('FS_TEMP_HANDLE'),
                 t.toExpression(t.identifier(applyFSPropertiesWithRef)),
               ),
             ]);
