@@ -39,7 +39,11 @@ function q(c, a, g) {
     'dataSourceFile',
   ];
   if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
-    if (c.$$typeof && c.$$typeof.toString() === 'Symbol(react.forward_ref)') {
+    if (
+      c.$$typeof &&
+      (c.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
+        c.$$typeof.toString() === 'Symbol(react.element)')
+    ) {
       if (d) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
           return typeof d[fsAttribute] === 'string' && !!d[fsAttribute];

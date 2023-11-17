@@ -100,7 +100,11 @@ function M(a, b, e) {
     'dataSourceFile',
   ];
   if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
-    if (a.$$typeof && a.$$typeof.toString() === 'Symbol(react.forward_ref)') {
+    if (
+      a.$$typeof &&
+      (a.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
+        a.$$typeof.toString() === 'Symbol(react.element)')
+    ) {
       if (c) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
           return typeof c[fsAttribute] === 'string' && !!c[fsAttribute];
@@ -310,6 +314,31 @@ exports.cloneElement = function (a, b, e) {
     g = Array(f);
     for (var m = 0; m < f; m++) g[m] = arguments[m + 2];
     d.children = g;
+  }
+  const SUPPORTED_FS_ATTRIBUTES = [
+    'fsClass',
+    'fsAttribute',
+    'fsTagName',
+    'dataElement',
+    'dataComponent',
+    'dataSourceFile',
+  ];
+  if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
+    if (
+      a.$$typeof &&
+      (a.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
+        a.$$typeof.toString() === 'Symbol(react.element)')
+    ) {
+      if (d) {
+        const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
+          return typeof d[fsAttribute] === 'string' && !!d[fsAttribute];
+        });
+        const fs = require('@fullstory/react-native');
+        if (propContainsFSAttribute) {
+          k = fs.applyFSPropertiesWithRef(k);
+        }
+      }
+    }
   }
   return {
     $$typeof: l,

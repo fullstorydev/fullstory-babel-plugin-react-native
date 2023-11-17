@@ -815,7 +815,11 @@ if (process.env.NODE_ENV !== 'production') {
         'dataSourceFile',
       ];
       if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
-        if (type.$$typeof && type.$$typeof.toString() === 'Symbol(react.forward_ref)') {
+        if (
+          type.$$typeof &&
+          (type.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
+            type.$$typeof.toString() === 'Symbol(react.element)')
+        ) {
           if (props) {
             const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
               return typeof props[fsAttribute] === 'string' && !!props[fsAttribute];

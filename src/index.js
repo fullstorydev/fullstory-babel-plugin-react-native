@@ -11,7 +11,7 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
     'dataSourceFile',
   ];  
   if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
-    if (${typeIdentifier}.$$typeof && ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)') {
+    if (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)')) {
       if (${propsIdentifier}) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
           return typeof ${propsIdentifier}[fsAttribute] === 'string' && !!${propsIdentifier}[fsAttribute];
@@ -421,8 +421,16 @@ function extendReactElementWithRef(path) {
       return t.isObjectProperty(property) && property.key.name === 'props';
     });
 
-    if (t.isIdentifier(typeIdentifierNode.value) && t.isIdentifier(propsIdentifierNode.value)) {
-      const typeIdentifier = typeIdentifierNode.value.name;
+    const typeIdentifierValueIsIdentifier = t.isIdentifier(typeIdentifierNode.value);
+    const typeIdentifierValueIsMemberExpression = t.isMemberExpression(typeIdentifierNode.value);
+
+    if (
+      (typeIdentifierValueIsIdentifier || typeIdentifierValueIsMemberExpression) &&
+      t.isIdentifier(propsIdentifierNode.value)
+    ) {
+      const typeIdentifier = typeIdentifierValueIsIdentifier
+        ? typeIdentifierNode.value.name
+        : typeIdentifierNode.value.object.name;
       const propsIdentifier = propsIdentifierNode.value.name;
       const _fabricRefCodeAST = babylon.parse(
         _createFabricRefCode(refIdentifier, typeIdentifier, propsIdentifier),
