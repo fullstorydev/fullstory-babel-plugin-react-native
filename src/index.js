@@ -1,6 +1,7 @@
 import * as babylon from '@babel/parser';
 import * as t from '@babel/types';
 
+// We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
 const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
@@ -413,6 +414,7 @@ function fixTouchableMixin(t, path) {
 
 function extendReactElementWithRef(path) {
   if (path.node.key.name === 'ref' && t.isIdentifier(path.node.value)) {
+    // Need to dynamically grab variable names for variables since minified code will change variable names
     const refIdentifier = path.node.value.name;
     const typeIdentifierNode = path.parentPath.node.properties.find(property => {
       return t.isObjectProperty(property) && property.key.name === 'type';
@@ -422,6 +424,7 @@ function extendReactElementWithRef(path) {
     });
 
     const typeIdentifierValueIsIdentifier = t.isIdentifier(typeIdentifierNode.value);
+    // variable "type" is a MemberExpression in production code
     const typeIdentifierValueIsMemberExpression = t.isMemberExpression(typeIdentifierNode.value);
 
     if (
@@ -435,6 +438,8 @@ function extendReactElementWithRef(path) {
       const _fabricRefCodeAST = babylon.parse(
         _createFabricRefCode(refIdentifier, typeIdentifier, propsIdentifier),
       );
+      // insert our code before the object declaration
+      // https://github.com/facebook/react/blob/bbb9cb116dbf7b6247721aa0c4bcb6ec249aa8af/packages/react/src/ReactElement.js#L149
       path.getStatementParent().insertBefore(_fabricRefCodeAST.program.body);
     }
   }
@@ -458,6 +463,7 @@ export default function ({ types: t }) {
       },
       ObjectProperty(path, state) {
         const reactFilesRegex = /node_modules\/react\/cjs\/.*\.js$/;
+        // only rewrite files in react/cjs directory
         if (reactFilesRegex.test(state.file.opts.filename)) {
           extendReactElementWithRef(path);
         }
