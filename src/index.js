@@ -1,6 +1,30 @@
 import * as babylon from '@babel/parser';
 import * as t from '@babel/types';
 
+const _createFabricRefCode = refIdentifier => `
+  const SUPPORTED_FS_ATTRIBUTES = [
+    'fsClass',
+    'fsAttribute',
+    'fsTagName',
+    'dataElement',
+    'dataComponent',
+    'dataSourceFile',
+  ];  
+  if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
+    if (type.$$typeof && type.$$typeof.toString() === 'Symbol(react.forward_ref)') {
+      if (props) {
+        const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
+          return typeof props[fsAttribute] === 'string' && !!props[fsAttribute];
+        });
+        
+        const fs  = require('@fullstory/react-native');
+        if (propContainsFSAttribute) {
+          ${refIdentifier} = fs.applyFSPropertiesWithRef(${refIdentifier});
+        }
+      }
+    }
+  }`;
+
 // This is the code that we will generate for Pressability.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
 const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = function(isLongPress) {
@@ -387,6 +411,15 @@ function fixTouchableMixin(t, path) {
   });
 }
 
+function extendReactElementWithRef(path) {
+  if (path.node.key.name === 'ref' && t.isIdentifier(path.node.value)) {
+    const refIdentifier = path.node.value.name;
+    const _fabricRefCodeAST = babylon.parse(_createFabricRefCode(refIdentifier));
+
+    path.getStatementParent().insertBefore(_fabricRefCodeAST.program.body);
+  }
+}
+
 /* eslint-disable complexity */
 export default function ({ types: t }) {
   return {
@@ -402,6 +435,12 @@ export default function ({ types: t }) {
         fixReactNativeViewConfig(path);
         fixReactNativeViewAttributes(path);
         fixTouchableMixin(t, path);
+      },
+      ObjectProperty(path, state) {
+        const reactFilesRegex = /node_modules\/react\/cjs\/.*\.js$/;
+        if (reactFilesRegex.test(state.file.opts.filename)) {
+          extendReactElementWithRef(path);
+        }
       },
     },
   };
