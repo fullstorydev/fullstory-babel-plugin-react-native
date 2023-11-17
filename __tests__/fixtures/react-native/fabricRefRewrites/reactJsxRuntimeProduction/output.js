@@ -39,10 +39,10 @@ function q(c, a, g) {
     'dataSourceFile',
   ];
   if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
-    if (type.$$typeof && type.$$typeof.toString() === 'Symbol(react.forward_ref)') {
-      if (props) {
+    if (c.$$typeof && c.$$typeof.toString() === 'Symbol(react.forward_ref)') {
+      if (d) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          return typeof props[fsAttribute] === 'string' && !!props[fsAttribute];
+          return typeof d[fsAttribute] === 'string' && !!d[fsAttribute];
         });
         const fs = require('@fullstory/react-native');
         if (propContainsFSAttribute) {

@@ -1,7 +1,7 @@
 import * as babylon from '@babel/parser';
 import * as t from '@babel/types';
 
-const _createFabricRefCode = refIdentifier => `
+const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
     'fsAttribute',
@@ -11,10 +11,10 @@ const _createFabricRefCode = refIdentifier => `
     'dataSourceFile',
   ];  
   if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
-    if (type.$$typeof && type.$$typeof.toString() === 'Symbol(react.forward_ref)') {
-      if (props) {
+    if (${typeIdentifier}.$$typeof && ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)') {
+      if (${propsIdentifier}) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          return typeof props[fsAttribute] === 'string' && !!props[fsAttribute];
+          return typeof ${propsIdentifier}[fsAttribute] === 'string' && !!${propsIdentifier}[fsAttribute];
         });
         
         const fs  = require('@fullstory/react-native');
@@ -414,9 +414,21 @@ function fixTouchableMixin(t, path) {
 function extendReactElementWithRef(path) {
   if (path.node.key.name === 'ref' && t.isIdentifier(path.node.value)) {
     const refIdentifier = path.node.value.name;
-    const _fabricRefCodeAST = babylon.parse(_createFabricRefCode(refIdentifier));
+    const typeIdentifierNode = path.parentPath.node.properties.find(property => {
+      return t.isObjectProperty(property) && property.key.name === 'type';
+    });
+    const propsIdentifierNode = path.parentPath.node.properties.find(property => {
+      return t.isObjectProperty(property) && property.key.name === 'props';
+    });
 
-    path.getStatementParent().insertBefore(_fabricRefCodeAST.program.body);
+    if (t.isIdentifier(typeIdentifierNode.value) && t.isIdentifier(propsIdentifierNode.value)) {
+      const typeIdentifier = typeIdentifierNode.value.name;
+      const propsIdentifier = propsIdentifierNode.value.name;
+      const _fabricRefCodeAST = babylon.parse(
+        _createFabricRefCode(refIdentifier, typeIdentifier, propsIdentifier),
+      );
+      path.getStatementParent().insertBefore(_fabricRefCodeAST.program.body);
+    }
   }
 }
 
