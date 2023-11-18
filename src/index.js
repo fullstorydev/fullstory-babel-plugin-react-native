@@ -423,67 +423,63 @@ function extendReactElementWithRef(path) {
    *   var blah2;
    *   { $$typeof: blah1, ..., ref: blah2, ... }
    */
-  if (path.node.key.name === 'ref' && t.isIdentifier(path.node.value)) {
-    var foundTypeOf = false;
-    for (var i = 0; i < path.container.length; i++) {
-      const sibling = path.container[i];
-      if (sibling.key.name == "$$typeof" && t.isIdentifier(sibling.value)) {
-        // in this case, the typeofDeclPath points to the 'var blah1' declaration in the above snippet
-        var typeofDeclPath = path.scope.getBinding(sibling.value.name).path;
-        if (!t.isVariableDeclarator(typeofDeclPath.node)) {
-          return;
-        }
-        if (!t.isCallExpression(typeofDeclPath.node.init)) {
-          return;
-        }
-        // we could validate typeofDeclPath.node.init.callee to make sure it is 'Symbol.for', but life is too long
-        if (typeofDeclPath.node.init.arguments.length != 1) {
-          return;
-        }
-        if (!t.isStringLiteral(typeofDeclPath.node.init.arguments[0])) {
-          return;
-        }
-        if (typeofDeclPath.node.init.arguments[0].value != 'react.element') {
-          return;
-        }
-        // Ok, this thing has the right type.  Continue to inject!
-        foundTypeOf = true;
-        break;
-      }
-    }
-    if (!foundTypeOf) {
-      // Something else appears to be named "ref" here, and is not creating a react.element.
-      return;
-    }
-    // Need to dynamically grab variable names for variables since minified code will change variable names; this is the "var blah2" above.
-    const refIdentifier = path.node.value.name;
-    const typeIdentifierNode = path.parentPath.node.properties.find(property => {
-      return t.isObjectProperty(property) && property.key.name === 'type';
-    });
-    const propsIdentifierNode = path.parentPath.node.properties.find(property => {
-      return t.isObjectProperty(property) && property.key.name === 'props';
-    });
 
-    const typeIdentifierValueIsIdentifier = t.isIdentifier(typeIdentifierNode.value);
-    // variable "type" is a MemberExpression in production code
-    const typeIdentifierValueIsMemberExpression = t.isMemberExpression(typeIdentifierNode.value);
-
-    if (
-      (typeIdentifierValueIsIdentifier || typeIdentifierValueIsMemberExpression) &&
-      t.isIdentifier(propsIdentifierNode.value)
-    ) {
-      const typeIdentifier = typeIdentifierValueIsIdentifier
-        ? typeIdentifierNode.value.name
-        : typeIdentifierNode.value.object.name;
-      const propsIdentifier = propsIdentifierNode.value.name;
-      const _fabricRefCodeAST = babylon.parse(
-        _createFabricRefCode(refIdentifier, typeIdentifier, propsIdentifier),
-      );
-      // insert our code before the object declaration
-      // https://github.com/facebook/react/blob/bbb9cb116dbf7b6247721aa0c4bcb6ec249aa8af/packages/react/src/ReactElement.js#L149
-      path.getStatementParent().insertBefore(_fabricRefCodeAST.program.body);
-    }
+  // Are we actually looking at the ref: in there, and does it refer to a single variable?
+  if (path.node.key.name !== 'ref' || !t.isIdentifier(path.node.value)) {
+    return;
   }
+
+  // Make sure that we have the $$typeof as a sibling, and it has a variable
+  // reference as its contents.
+  const typeofIdentifierNode = path.parentPath.node.properties.find(property => {
+    return t.isObjectProperty(property) && property.key.name === '$$typeof';
+  });
+  if (!typeofIdentifierNode || !t.isIdentifier(typeofIdentifierNode.value)) {
+    return;
+  }
+
+  // In this case, the typeofDeclPath points to the 'var blah1' declaration
+  // in the above snippet; make sure it's of the form we expect it to be.
+  const typeofDeclPath = path.scope.getBinding(typeofIdentifierNode.value.name).path;
+  if (!t.isVariableDeclarator(typeofDeclPath.node) ||
+      !t.isCallExpression(typeofDeclPath.node.init) ||
+      // we could validate typeofDeclPath.node.init.callee to make sure it is 'Symbol.for', but life is too long
+      (typeofDeclPath.node.init.arguments.length != 1) ||
+      !t.isStringLiteral(typeofDeclPath.node.init.arguments[0]) ||
+      typeofDeclPath.node.init.arguments[0].value != 'react.element') {
+    return;
+  }
+
+  // Need to dynamically grab variable names for variables since minified
+  // code will change variable names; this is the lookup for the "var blah2"
+  // above.
+  const refIdentifier = path.node.value.name;
+  const typeIdentifierNode = path.parentPath.node.properties.find(property => {
+    return t.isObjectProperty(property) && property.key.name === 'type';
+  });
+  const propsIdentifierNode = path.parentPath.node.properties.find(property => {
+    return t.isObjectProperty(property) && property.key.name === 'props';
+  });
+
+  const typeIdentifierValueIsIdentifier = t.isIdentifier(typeIdentifierNode.value);
+  // variable "type" is a MemberExpression in production code
+  const typeIdentifierValueIsMemberExpression = t.isMemberExpression(typeIdentifierNode.value);
+
+  if (!(typeIdentifierValueIsIdentifier || typeIdentifierValueIsMemberExpression) ||
+      !t.isIdentifier(propsIdentifierNode.value)) {
+    return;
+  }
+  const typeIdentifier = typeIdentifierValueIsIdentifier
+    ? typeIdentifierNode.value.name
+    : typeIdentifierNode.value.object.name;
+  const propsIdentifier = propsIdentifierNode.value.name;
+
+  // at long last, insert our code before the object declaration
+  // https://github.com/facebook/react/blob/bbb9cb116dbf7b6247721aa0c4bcb6ec249aa8af/packages/react/src/ReactElement.js#L149
+  const fabricRefCodeAST = babylon.parse(
+    _createFabricRefCode(refIdentifier, typeIdentifier, propsIdentifier),
+  );
+  path.getStatementParent().insertBefore(fabricRefCodeAST.program.body);
 }
 
 /* eslint-disable complexity */
