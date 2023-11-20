@@ -109,8 +109,8 @@ function M(a, b, e) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
           return typeof c[fsAttribute] === 'string' && !!c[fsAttribute];
         });
-        const fs = require('@fullstory/react-native');
         if (propContainsFSAttribute) {
+          const fs = require('@fullstory/react-native');
           h = fs.applyFSPropertiesWithRef(h);
         }
       }
@@ -333,8 +333,8 @@ exports.cloneElement = function (a, b, e) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
           return typeof d[fsAttribute] === 'string' && !!d[fsAttribute];
         });
-        const fs = require('@fullstory/react-native');
         if (propContainsFSAttribute) {
+          const fs = require('@fullstory/react-native');
           k = fs.applyFSPropertiesWithRef(k);
         }
       }

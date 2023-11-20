@@ -824,8 +824,8 @@ if (process.env.NODE_ENV !== 'production') {
             const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
               return typeof props[fsAttribute] === 'string' && !!props[fsAttribute];
             });
-            const fs = require('@fullstory/react-native');
             if (propContainsFSAttribute) {
+              const fs = require('@fullstory/react-native');
               ref = fs.applyFSPropertiesWithRef(ref);
             }
           }

@@ -18,8 +18,8 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
           return typeof ${propsIdentifier}[fsAttribute] === 'string' && !!${propsIdentifier}[fsAttribute];
         });
         
-        const fs  = require('@fullstory/react-native');
         if (propContainsFSAttribute) {
+          const fs  = require('@fullstory/react-native');
           ${refIdentifier} = fs.applyFSPropertiesWithRef(${refIdentifier});
         }
       }
