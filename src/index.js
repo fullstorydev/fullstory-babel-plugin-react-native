@@ -441,12 +441,14 @@ function extendReactElementWithRef(path) {
   // In this case, the typeofDeclPath points to the 'var blah1' declaration
   // in the above snippet; make sure it's of the form we expect it to be.
   const typeofDeclPath = path.scope.getBinding(typeofIdentifierNode.value.name).path;
-  if (!t.isVariableDeclarator(typeofDeclPath.node) ||
-      !t.isCallExpression(typeofDeclPath.node.init) ||
-      // we could validate typeofDeclPath.node.init.callee to make sure it is 'Symbol.for', but life is too long
-      (typeofDeclPath.node.init.arguments.length != 1) ||
-      !t.isStringLiteral(typeofDeclPath.node.init.arguments[0]) ||
-      typeofDeclPath.node.init.arguments[0].value != 'react.element') {
+  if (
+    !t.isVariableDeclarator(typeofDeclPath.node) ||
+    !t.isCallExpression(typeofDeclPath.node.init) ||
+    // we could validate typeofDeclPath.node.init.callee to make sure it is 'Symbol.for', but life is too long
+    typeofDeclPath.node.init.arguments.length != 1 ||
+    !t.isStringLiteral(typeofDeclPath.node.init.arguments[0]) ||
+    typeofDeclPath.node.init.arguments[0].value != 'react.element'
+  ) {
     return;
   }
 
@@ -465,8 +467,10 @@ function extendReactElementWithRef(path) {
   // variable "type" is a MemberExpression in production code
   const typeIdentifierValueIsMemberExpression = t.isMemberExpression(typeIdentifierNode.value);
 
-  if (!(typeIdentifierValueIsIdentifier || typeIdentifierValueIsMemberExpression) ||
-      !t.isIdentifier(propsIdentifierNode.value)) {
+  if (
+    !(typeIdentifierValueIsIdentifier || typeIdentifierValueIsMemberExpression) ||
+    !t.isIdentifier(propsIdentifierNode.value)
+  ) {
     return;
   }
   const typeIdentifier = typeIdentifierValueIsIdentifier
@@ -504,6 +508,35 @@ export default function ({ types: t }) {
         if (reactFilesRegex.test(state.file.opts.filename)) {
           extendReactElementWithRef(path);
         }
+      },
+      JSXAttribute(path) {
+        // disable view optimization for only View component
+        if (path.parent.name.name !== 'View') return;
+
+        // must be manually annotated with at least one fs attribute
+        if (
+          path.node.name.name !== 'fsClass' &&
+          path.node.name.name !== 'fsTagName' &&
+          path.node.name.name !== 'fsAttribute'
+        ) {
+          return;
+        }
+
+        const isViewOptimizationDisabled = path.container.some(attribute => {
+          return (
+            t.isJSXIdentifier(attribute.name, { name: 'testID' }) ||
+            t.isJSXIdentifier(attribute.name, { name: 'id' }) ||
+            t.isJSXIdentifier(attribute.name, { name: 'nativeID' })
+          );
+        });
+
+        if (isViewOptimizationDisabled) {
+          return;
+        }
+
+        path.insertAfter(
+          t.jsxAttribute(t.jsxIdentifier('nativeID'), t.stringLiteral('__FS_NATIVEID')),
+        );
       },
     },
   };
