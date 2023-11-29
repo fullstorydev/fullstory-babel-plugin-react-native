@@ -1,6 +1,31 @@
 import * as babylon from '@babel/parser';
 import * as t from '@babel/types';
 
+// We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
+const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
+  const SUPPORTED_FS_ATTRIBUTES = [
+    'fsClass',
+    'fsAttribute',
+    'fsTagName',
+    'dataElement',
+    'dataComponent',
+    'dataSourceFile',
+  ];  
+  if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
+    if (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)')) {
+      if (${propsIdentifier}) {
+        const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
+          return typeof ${propsIdentifier}[fsAttribute] === 'string' && !!${propsIdentifier}[fsAttribute];
+        });
+        
+        if (propContainsFSAttribute) {
+          const fs  = require('@fullstory/react-native');
+          ${refIdentifier} = fs.applyFSPropertiesWithRef(${refIdentifier});
+        }
+      }
+    }
+  }`;
+
 // This is the code that we will generate for Pressability.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
 const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = function(isLongPress) {
@@ -387,6 +412,80 @@ function fixTouchableMixin(t, path) {
   });
 }
 
+function extendReactElementWithRef(path) {
+  /* We're looking for the bit where react actually creates a ReactElement.
+   * We identify this by it being an object that has a ref property, and
+   * then after that, we verify that there is a $$typeof property that is
+   * the magic ReactElement.  i.e., we're looking for a whole object with:
+   *
+   *   var blah1 = Symbol.for('react.element');
+   *   [...]
+   *   var blah2;
+   *   { $$typeof: blah1, ..., ref: blah2, ... }
+   */
+
+  // Are we actually looking at the ref: in there, and does it refer to a single variable?
+  if (path.node.key.name !== 'ref' || !t.isIdentifier(path.node.value)) {
+    return;
+  }
+
+  // Make sure that we have the $$typeof as a sibling, and it has a variable
+  // reference as its contents.
+  const typeofIdentifierNode = path.parentPath.node.properties.find(property => {
+    return t.isObjectProperty(property) && property.key.name === '$$typeof';
+  });
+  if (!typeofIdentifierNode || !t.isIdentifier(typeofIdentifierNode.value)) {
+    return;
+  }
+
+  // In this case, the typeofDeclPath points to the 'var blah1' declaration
+  // in the above snippet; make sure it's of the form we expect it to be.
+  const typeofDeclPath = path.scope.getBinding(typeofIdentifierNode.value.name).path;
+  if (
+    !t.isVariableDeclarator(typeofDeclPath.node) ||
+    !t.isCallExpression(typeofDeclPath.node.init) ||
+    // we could validate typeofDeclPath.node.init.callee to make sure it is 'Symbol.for', but life is too long
+    typeofDeclPath.node.init.arguments.length != 1 ||
+    !t.isStringLiteral(typeofDeclPath.node.init.arguments[0]) ||
+    typeofDeclPath.node.init.arguments[0].value != 'react.element'
+  ) {
+    return;
+  }
+
+  // Need to dynamically grab variable names for variables since minified
+  // code will change variable names; this is the lookup for the "var blah2"
+  // above.
+  const refIdentifier = path.node.value.name;
+  const typeIdentifierNode = path.parentPath.node.properties.find(property => {
+    return t.isObjectProperty(property) && property.key.name === 'type';
+  });
+  const propsIdentifierNode = path.parentPath.node.properties.find(property => {
+    return t.isObjectProperty(property) && property.key.name === 'props';
+  });
+
+  const typeIdentifierValueIsIdentifier = t.isIdentifier(typeIdentifierNode.value);
+  // variable "type" is a MemberExpression in production code
+  const typeIdentifierValueIsMemberExpression = t.isMemberExpression(typeIdentifierNode.value);
+
+  if (
+    !(typeIdentifierValueIsIdentifier || typeIdentifierValueIsMemberExpression) ||
+    !t.isIdentifier(propsIdentifierNode.value)
+  ) {
+    return;
+  }
+  const typeIdentifier = typeIdentifierValueIsIdentifier
+    ? typeIdentifierNode.value.name
+    : typeIdentifierNode.value.object.name;
+  const propsIdentifier = propsIdentifierNode.value.name;
+
+  // at long last, insert our code before the object declaration
+  // https://github.com/facebook/react/blob/bbb9cb116dbf7b6247721aa0c4bcb6ec249aa8af/packages/react/src/ReactElement.js#L149
+  const fabricRefCodeAST = babylon.parse(
+    _createFabricRefCode(refIdentifier, typeIdentifier, propsIdentifier),
+  );
+  path.getStatementParent().insertBefore(fabricRefCodeAST.program.body);
+}
+
 /* eslint-disable complexity */
 export default function ({ types: t }) {
   return {
@@ -402,6 +501,43 @@ export default function ({ types: t }) {
         fixReactNativeViewConfig(path);
         fixReactNativeViewAttributes(path);
         fixTouchableMixin(t, path);
+      },
+      ObjectProperty(path, state) {
+        const reactFilesRegex = /node_modules\/react\/cjs\/.*\.js$/;
+        // only rewrite files in react/cjs directory
+        if (reactFilesRegex.test(state.file.opts.filename)) {
+          extendReactElementWithRef(path);
+        }
+      },
+      JSXAttribute(path) {
+        // disable view optimization for only View component
+        if (path.parent.name.name !== 'View') return;
+
+        // must be manually annotated with at least one fs attribute
+        if (
+          path.node.name.name !== 'fsClass' &&
+          path.node.name.name !== 'fsTagName' &&
+          path.node.name.name !== 'fsAttribute'
+        ) {
+          return;
+        }
+
+        // check if view optimization is already disabled
+        const isViewOptimizationDisabled = path.container.some(attribute => {
+          return (
+            t.isJSXIdentifier(attribute.name, { name: 'testID' }) ||
+            t.isJSXIdentifier(attribute.name, { name: 'id' }) ||
+            t.isJSXIdentifier(attribute.name, { name: 'nativeID' })
+          );
+        });
+
+        if (isViewOptimizationDisabled) {
+          return;
+        }
+
+        path.insertAfter(
+          t.jsxAttribute(t.jsxIdentifier('nativeID'), t.stringLiteral('__FS_NATIVEID')),
+        );
       },
     },
   };
