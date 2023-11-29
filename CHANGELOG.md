@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+Added support for Fabric, React Native's new rendering system
+
 ## 1.0.3
 
 Fixed an issue with React Native 71+ that prevented privacy rules from working on `Text` components
