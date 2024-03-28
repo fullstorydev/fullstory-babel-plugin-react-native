@@ -509,6 +509,38 @@ export default function ({ types: t }) {
           extendReactElementWithRef(path);
         }
       },
+      // RN screen selector support
+      JSXOpeningElement: function JSXOpeningElement(path, state) {
+        const filename = state.file.opts.filename;
+        const isReactNavigationFile = filename.includes('node_modules/@react-navigation');
+        if (!isReactNavigationFile) {
+          return;
+        }
+
+        // rewrite all `<MaybeScreen />` components.
+        const isMaybeScreenView = path.node.name.name === 'MaybeScreen';
+
+        // <Screen /> is a bit more generic so we want to be specific here
+        const isNativeStackView =
+          path.node.name.name === 'Screen' &&
+          filename.includes('native-stack/src/views/NativeStackView');
+
+        if (isMaybeScreenView || isNativeStackView) {
+          path.node.attributes.push(
+            t.jsxAttribute(
+              t.jsxIdentifier('fsAttribute'),
+              t.jsxExpressionContainer(
+                t.objectExpression([
+                  t.objectProperty(
+                    t.stringLiteral('screen-name'),
+                    t.memberExpression(t.identifier('route'), t.identifier('name')),
+                  ),
+                ]),
+              ),
+            ),
+          );
+        }
+      },
       JSXAttribute(path) {
         // disable view optimization for only View component
         if (path.parent.name.name !== 'View') return;
