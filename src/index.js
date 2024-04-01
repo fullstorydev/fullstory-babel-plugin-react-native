@@ -516,6 +516,9 @@ export default function ({ types: t }) {
         if (!isReactNavigationFile) {
           return;
         }
+        if (!t.isJSXIdentifier(path.node.name)) {
+          return;
+        }
 
         // rewrite all `<MaybeScreen />` components.
         const isMaybeScreenView = path.node.name.name === 'MaybeScreen';
