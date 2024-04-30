@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+Add support for 'Select Entire Screen' for React Navigation & React Native Navigation
+
 ## 1.1.0
 
 Added support for Fabric, React Native's new rendering system
