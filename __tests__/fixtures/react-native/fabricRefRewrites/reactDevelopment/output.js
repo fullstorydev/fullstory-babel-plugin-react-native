@@ -700,6 +700,7 @@ if (process.env.NODE_ENV !== 'production') {
      */
 
     var ReactElement = function (type, key, ref, self, source, owner, props) {
+      const { Platform } = require('react-native');
       const SUPPORTED_FS_ATTRIBUTES = [
         'fsClass',
         'fsAttribute',

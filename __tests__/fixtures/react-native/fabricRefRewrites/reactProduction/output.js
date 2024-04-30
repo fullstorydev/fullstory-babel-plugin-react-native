@@ -91,6 +91,7 @@ function M(a, b, e) {
     c.children = f;
   }
   if (a && a.defaultProps) for (d in ((g = a.defaultProps), g)) void 0 === c[d] && (c[d] = g[d]);
+  const { Platform } = require('react-native');
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
     'fsAttribute',
@@ -315,6 +316,7 @@ exports.cloneElement = function (a, b, e) {
     for (var m = 0; m < f; m++) g[m] = arguments[m + 2];
     d.children = g;
   }
+  const { Platform } = require('react-native');
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
     'fsAttribute',
