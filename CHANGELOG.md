@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+Fixed a bug that causes a runtime crash on Expo iOS New Architecture
+
 ## 1.2.0
 
 Add support for 'Select Entire Screen' for React Navigation & React Native Navigation
