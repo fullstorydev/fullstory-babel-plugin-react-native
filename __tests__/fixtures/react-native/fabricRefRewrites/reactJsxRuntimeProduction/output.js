@@ -30,6 +30,7 @@ function q(c, a, g) {
   void 0 !== a.ref && (h = a.ref);
   for (b in a) m.call(a, b) && !p.hasOwnProperty(b) && (d[b] = a[b]);
   if (c && c.defaultProps) for (b in ((a = c.defaultProps), a)) void 0 === d[b] && (d[b] = a[b]);
+  const { Platform } = require('react-native');
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
     'fsAttribute',

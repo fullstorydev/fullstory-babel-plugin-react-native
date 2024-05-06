@@ -3,6 +3,7 @@ import * as t from '@babel/types';
 
 // We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
 const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
+  const { Platform } = require('react-native');
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
     'fsAttribute',
