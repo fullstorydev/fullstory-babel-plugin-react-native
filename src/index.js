@@ -30,14 +30,6 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
 // This is the code that we will generate for Pressability.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
 const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = function(isLongPress) {
-  try {
-    if (!UIManager || !UIManager.onFsPressForward) {
-      return;
-    }
-  } catch (e) {
-    return;
-  }
-
   if (this._responderID == null) {
     return;
   }
@@ -45,8 +37,12 @@ const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = fun
   var nativeTag = null;
   if (typeof this._responderID === 'number') {
     nativeTag = this._responderID;
-  } else if (typeof this._responderID === 'object' && typeof this._responderID._nativeTag === 'number') {
-    nativeTag = this._responderID._nativeTag
+  } else if (typeof this._responderID === 'object') {
+    if (typeof this._responderID._nativeTag === 'number') {
+      nativeTag = this._responderID._nativeTag
+    } else if (typeof this._responderID.__nativeTag === 'number') {
+      nativeTag = this._responderID.__nativeTag
+    }
   }
 
   if (nativeTag == null) {
@@ -57,7 +53,21 @@ const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = fun
 
   var hasPress = !!onPress;
   var hasLongPress = !!onLongPress;
-  UIManager.onFsPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+
+  try {
+    if (UIManager && UIManager.onFsPressForward) {
+      UIManager.onFsPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+      return;
+    }
+  } catch (e) {}
+
+  try {
+    var FullStory = require("@fullstory/react-native");
+    if (FullStory && FullStory.FullStoryPrivateAPI && FullStory.FullStoryPrivateAPI.onFSPressForward) {
+      FullStory.FullStoryPrivateAPI.onFSPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+      return;
+    }
+  } catch (e) {}
 }`;
 const _onFsPressForwardCallLongPress_PressabilityCode = `this._onFsPressForward_Pressability(true)`;
 const _onFsPressForwardCallPress_PressabilityCode = `this._onFsPressForward_Pressability(false)`;
@@ -78,14 +88,6 @@ const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(
 // This is the code that we will generate for Touchable.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
 const _onFsPressForwardCode = `_onFsPressForward = function(isLongPress) {
-  try {
-    if (!UIManager || !UIManager.onFsPressForward) {
-      return;
-    }
-  } catch (e) {
-    return;
-  }
-
   const tag = this.state.touchable.responderID;
   if (tag == null) {
     return;
@@ -94,8 +96,12 @@ const _onFsPressForwardCode = `_onFsPressForward = function(isLongPress) {
   var nativeTag = null;
   if (typeof tag === 'number') {
     nativeTag = tag;
-  } else if (typeof tag === 'object' && typeof tag._nativeTag === 'number') {
-    nativeTag = tag._nativeTag
+  } else if (typeof tag === 'object') {
+    if (typeof tag._nativeTag === 'number') {
+      nativeTag = tag._nativeTag
+    } else if (typeof tag.nativeID === 'number') {
+      nativeTag = tag.nativeID
+    }
   }
 
   if (nativeTag == null) {
@@ -104,7 +110,20 @@ const _onFsPressForwardCode = `_onFsPressForward = function(isLongPress) {
 
   var hasPress = !!this.props.onPress;
   var hasLongPress = !!this.props.onLongPress;
-  UIManager.onFsPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+  try {
+    if (UIManager && UIManager.onFsPressForward) {
+      UIManager.onFsPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+      return;
+    }
+  } catch (e) {}
+
+  try {
+    var FullStory = require("@fullstory/react-native");
+    if (FullStory && FullStory.FullStoryPrivateAPI && FullStory.FullStoryPrivateAPI.onFSPressForward) {
+      FullStory.FullStoryPrivateAPI.onFSPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+      return;
+    }
+  } catch (e) {}
 }`;
 const _onFsPressForwardCallLongPressCode = `this._onFsPressForward(true)`;
 const _onFsPressForwardCallPressCode = `this._onFsPressForward(false)`;
