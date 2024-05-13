@@ -63,8 +63,8 @@ const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = fun
 
   try {
     var FullStory = require("@fullstory/react-native");
-    if (FullStory && FullStory.FullStoryPrivateAPI && FullStory.FullStoryPrivateAPI.onFSPressForward) {
-      FullStory.FullStoryPrivateAPI.onFSPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+    if (FullStory && FullStory.PrivateInterface && FullStory.PrivateInterface.onFSPressForward) {
+      FullStory.PrivateInterface.onFSPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
       return;
     }
   } catch (e) {}
@@ -119,8 +119,8 @@ const _onFsPressForwardCode = `_onFsPressForward = function(isLongPress) {
 
   try {
     var FullStory = require("@fullstory/react-native");
-    if (FullStory && FullStory.FullStoryPrivateAPI && FullStory.FullStoryPrivateAPI.onFSPressForward) {
-      FullStory.FullStoryPrivateAPI.onFSPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+    if (FullStory && FullStory.PrivateInterface && FullStory.PrivateInterface.onFSPressForward) {
+      FullStory.PrivateInterface.onFSPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
       return;
     }
   } catch (e) {}
