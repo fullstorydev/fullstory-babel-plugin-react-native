@@ -39,9 +39,9 @@ const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = fun
     nativeTag = this._responderID;
   } else if (typeof this._responderID === 'object') {
     if (typeof this._responderID._nativeTag === 'number') {
-      nativeTag = this._responderID._nativeTag
+      nativeTag = this._responderID._nativeTag;
     } else if (typeof this._responderID.__nativeTag === 'number') {
-      nativeTag = this._responderID.__nativeTag
+      nativeTag = this._responderID.__nativeTag;
     }
   }
 
@@ -49,7 +49,7 @@ const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = fun
     return;
   }
 
-  const {onLongPress, onPress} = this._config;
+  const { onLongPress, onPress } = this._config;
 
   var hasPress = !!onPress;
   var hasLongPress = !!onLongPress;
@@ -98,9 +98,9 @@ const _onFsPressForwardCode = `_onFsPressForward = function(isLongPress) {
     nativeTag = tag;
   } else if (typeof tag === 'object') {
     if (typeof tag._nativeTag === 'number') {
-      nativeTag = tag._nativeTag
+      nativeTag = tag._nativeTag;
     } else if (typeof tag.nativeID === 'number') {
-      nativeTag = tag.nativeID
+      nativeTag = tag.nativeID;
     }
   }
 
