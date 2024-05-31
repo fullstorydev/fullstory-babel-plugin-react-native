@@ -746,24 +746,18 @@ export default class Pressability {
     }
   }
   _onFsPressForward_Pressability(isLongPress) {
-    try {
-      if (!UIManager || !UIManager.onFsPressForward) {
-        return;
-      }
-    } catch (e) {
-      return;
-    }
     if (this._responderID == null) {
       return;
     }
     var nativeTag = null;
     if (typeof this._responderID === 'number') {
       nativeTag = this._responderID;
-    } else if (
-      typeof this._responderID === 'object' &&
-      typeof this._responderID._nativeTag === 'number'
-    ) {
-      nativeTag = this._responderID._nativeTag;
+    } else if (typeof this._responderID === 'object') {
+      if (typeof this._responderID._nativeTag === 'number') {
+        nativeTag = this._responderID._nativeTag;
+      } else if (typeof this._responderID.__nativeTag === 'number') {
+        nativeTag = this._responderID.__nativeTag;
+      }
     }
     if (nativeTag == null) {
       return;
@@ -771,7 +765,19 @@ export default class Pressability {
     const { onLongPress, onPress } = this._config;
     var hasPress = !!onPress;
     var hasLongPress = !!onLongPress;
-    UIManager.onFsPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+    try {
+      if (UIManager && UIManager.onFsPressForward) {
+        UIManager.onFsPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+        return;
+      }
+    } catch (e) {}
+    try {
+      var FullStory = require('@fullstory/react-native');
+      if (FullStory && FullStory.PrivateInterface && FullStory.PrivateInterface.onFSPressForward) {
+        FullStory.PrivateInterface.onFSPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+        return;
+      }
+    } catch (e) {}
   }
 }
 function normalizeDelay(delay: ?number, min = 0, fallback = 0): number {

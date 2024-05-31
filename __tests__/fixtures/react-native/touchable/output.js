@@ -841,13 +841,6 @@ const TouchableMixin = {
   },
   withoutDefaultFocusAndBlur: ({}: $TEMPORARY$object<{||}>),
   _onFsPressForward: function (isLongPress) {
-    try {
-      if (!UIManager || !UIManager.onFsPressForward) {
-        return;
-      }
-    } catch (e) {
-      return;
-    }
     const tag = this.state.touchable.responderID;
     if (tag == null) {
       return;
@@ -855,15 +848,31 @@ const TouchableMixin = {
     var nativeTag = null;
     if (typeof tag === 'number') {
       nativeTag = tag;
-    } else if (typeof tag === 'object' && typeof tag._nativeTag === 'number') {
-      nativeTag = tag._nativeTag;
+    } else if (typeof tag === 'object') {
+      if (typeof tag._nativeTag === 'number') {
+        nativeTag = tag._nativeTag;
+      } else if (typeof tag.nativeID === 'number') {
+        nativeTag = tag.nativeID;
+      }
     }
     if (nativeTag == null) {
       return;
     }
     var hasPress = !!this.props.onPress;
     var hasLongPress = !!this.props.onLongPress;
-    UIManager.onFsPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+    try {
+      if (UIManager && UIManager.onFsPressForward) {
+        UIManager.onFsPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+        return;
+      }
+    } catch (e) {}
+    try {
+      var FullStory = require('@fullstory/react-native');
+      if (FullStory && FullStory.PrivateInterface && FullStory.PrivateInterface.onFSPressForward) {
+        FullStory.PrivateInterface.onFSPressForward(nativeTag, isLongPress, hasPress, hasLongPress);
+        return;
+      }
+    } catch (e) {}
   },
 };
 
