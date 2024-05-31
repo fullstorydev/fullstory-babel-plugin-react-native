@@ -57,3 +57,9 @@ workflows:
       - deploy-babel-plugin-react-native:
           requires:
             - hold
+          filters:
+            # deploy only on version tags
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
