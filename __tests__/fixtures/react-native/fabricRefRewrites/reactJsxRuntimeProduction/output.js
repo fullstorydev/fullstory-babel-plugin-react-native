@@ -39,7 +39,8 @@ function q(c, a, g) {
     'dataComponent',
     'dataSourceFile',
   ];
-  if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
+  const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
+  if (isTurboModuleEnabled && Platform.OS === 'ios') {
     if (
       c.$$typeof &&
       (c.$$typeof.toString() === 'Symbol(react.forward_ref)' ||

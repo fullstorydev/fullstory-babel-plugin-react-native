@@ -709,7 +709,8 @@ if (process.env.NODE_ENV !== 'production') {
         'dataComponent',
         'dataSourceFile',
       ];
-      if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
+      const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
+      if (isTurboModuleEnabled && Platform.OS === 'ios') {
         if (
           type.$$typeof &&
           (type.$$typeof.toString() === 'Symbol(react.forward_ref)' ||

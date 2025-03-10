@@ -100,7 +100,8 @@ function M(a, b, e) {
     'dataComponent',
     'dataSourceFile',
   ];
-  if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
+  const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
+  if (isTurboModuleEnabled && Platform.OS === 'ios') {
     if (
       a.$$typeof &&
       (a.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
@@ -325,7 +326,8 @@ exports.cloneElement = function (a, b, e) {
     'dataComponent',
     'dataSourceFile',
   ];
-  if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
+  const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
+  if (isTurboModuleEnabled && Platform.OS === 'ios') {
     if (
       a.$$typeof &&
       (a.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
