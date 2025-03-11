@@ -30,7 +30,7 @@ jobs:
           command: npm run test
       - persist_to_workspace:
           root: .
-          paths: .
+          paths: [.]
   deploy-babel-plugin-react-native:
     executor: browser-executor
     steps:
@@ -46,14 +46,21 @@ workflows:
   version: 2
   test-deploy:
     jobs:
-      - build-babel-plugin-react-native
+      - build-babel-plugin-react-native:
+          filters:
+            # test on all branches and tags (all branches are included by default)
+            tags:
+              only: /.*/
       - hold:
           type: approval
           requires:
             - build-babel-plugin-react-native
           filters:
+            # hold only on version tags
+            tags:
+              only: /^v.*/
             branches:
-              only: 'master'
+              ignore: /.*/
       - deploy-babel-plugin-react-native:
           requires:
             - hold
