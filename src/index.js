@@ -11,8 +11,9 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
     'dataElement',
     'dataComponent',
     'dataSourceFile',
-  ];  
-  if (global.__turboModuleProxy != null && Platform.OS === 'ios') {
+  ]; 
+  const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null
+  if (isTurboModuleEnabled && Platform.OS === 'ios') {
     if (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)')) {
       if (${propsIdentifier}) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
