@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1
+
+Fixed an issue with New Architecture detection in React Native 77+.
+
 ## 1.3.0
 
 Support click events for React Native 74 on Android.
