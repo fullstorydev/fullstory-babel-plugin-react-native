@@ -459,17 +459,8 @@ function extendReactElementWithRef(path) {
     return;
   }
 
-  // Make sure that we have the $$typeof as a sibling, and it has a variable
-  // reference as its contents.
-  const typeofIdentifierNode = path.parentPath.node.properties.find(property => {
-    return t.isObjectProperty(property) && property.key.name === '$$typeof';
-  });
-  if (!typeofIdentifierNode || !t.isIdentifier(typeofIdentifierNode.value)) {
-    return;
-  }
-
   // Ensure that the value of $$typeof is a Symbol for 'react.element' or 'react.transitional.element'
-  const typeofDeclPath = path.scope.getBinding(typeofIdentifierNode.value.name).path;
+  const typeofDeclPath = path.scope.getBinding(path.node.value.name).path;
   if (
     !t.isVariableDeclarator(typeofDeclPath.node) ||
     !t.isCallExpression(typeofDeclPath.node.init) ||
