@@ -105,7 +105,8 @@ function M(a, b, e) {
     if (
       a.$$typeof &&
       (a.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-        a.$$typeof.toString() === 'Symbol(react.element)')
+        a.$$typeof.toString() === 'Symbol(react.element)' ||
+        a.$$typeof.toString() === 'Symbol(react.transitional.element)')
     ) {
       if (c) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
@@ -331,7 +332,8 @@ exports.cloneElement = function (a, b, e) {
     if (
       a.$$typeof &&
       (a.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-        a.$$typeof.toString() === 'Symbol(react.element)')
+        a.$$typeof.toString() === 'Symbol(react.element)' ||
+        a.$$typeof.toString() === 'Symbol(react.transitional.element)')
     ) {
       if (d) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
