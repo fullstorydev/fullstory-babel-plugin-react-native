@@ -1,6 +1,7 @@
 import * as babylon from '@babel/parser';
 import * as t from '@babel/types';
 
+// The return value of this function will be evaluated as JavaScript code.
 const setRefBackwardCompat = (refIdentifier, propsIdentifier) => {
   if (refIdentifier) {
     // React versions < 19
@@ -447,11 +448,15 @@ function extendReactElementWithRef(path) {
 
    * We identify this by looking for the $$typeof property set on an object and
    * where $$typeof is set to Symbol.for('react.element') or Symbol.for('react.transitional.element')
-   *
-   *   var foo = Symbol.for('react.element');
-   *   [...]
-   *   var bar;
-   *   { $$typeof: foo, ..., ref: bar, ... }
+   * 
+   * This is the structure of the element object in React:
+   *   const element = {
+   *     $$typeof: REACT_ELEMENT_TYPE,
+   *     type: type,
+   *     key: key,
+   *     ref: ref, // this does not exist in React >=19
+   *     props: props, // props.ref has the ref in React >=19
+   *     _owner: owner,
    */
 
   // Are we actually looking at the ref: in there, and does it refer to a single variable?
