@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+
+Added support for React Native 78.
+
 ## 1.3.1
 
 Fixed an issue with New Architecture detection in React Native 77+.
