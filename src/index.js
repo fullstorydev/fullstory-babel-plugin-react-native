@@ -1,6 +1,15 @@
 import * as babylon from '@babel/parser';
 import * as t from '@babel/types';
 
+// The return value of this function will be evaluated as JavaScript code.
+const setRefBackwardCompat = (refIdentifier, propsIdentifier) => {
+  if (refIdentifier) {
+    // React versions < 19
+    return `${refIdentifier} = fs.applyFSPropertiesWithRef(${refIdentifier});`;
+  }
+  // React versions >= 19
+  return `${propsIdentifier} = { ...${propsIdentifier}, ref: fs.applyFSPropertiesWithRef(${propsIdentifier}['ref']) }`;
+};
 // We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
 const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
   const { Platform } = require('react-native');
@@ -14,7 +23,7 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
   ]; 
   const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
-    if (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)')) {
+    if (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)')) {
       if (${propsIdentifier}) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
           return typeof ${propsIdentifier}[fsAttribute] === 'string' && !!${propsIdentifier}[fsAttribute];
@@ -22,7 +31,7 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
         
         if (propContainsFSAttribute) {
           const fs  = require('@fullstory/react-native');
-          ${refIdentifier} = fs.applyFSPropertiesWithRef(${refIdentifier});
+          ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
         }
       }
     }
@@ -434,49 +443,46 @@ function fixTouchableMixin(t, path) {
 }
 
 function extendReactElementWithRef(path) {
-  /* We're looking for the bit where react actually creates a ReactElement.
-   * We identify this by it being an object that has a ref property, and
-   * then after that, we verify that there is a $$typeof property that is
-   * the magic ReactElement.  i.e., we're looking for a whole object with:
-   *
-   *   var blah1 = Symbol.for('react.element');
-   *   [...]
-   *   var blah2;
-   *   { $$typeof: blah1, ..., ref: blah2, ... }
+  /* We look in React for when it creates a ReactElement.
+   * https://github.com/facebook/react/blob/b2f6365745416be4d7dad7799a2cfbfbbf425389/packages/react/src/jsx/ReactJSXElement.js#L176
+
+   * We identify this by looking for the $$typeof property set on an object and
+   * where $$typeof is set to Symbol.for('react.element') or Symbol.for('react.transitional.element')
+   * 
+   * This is the structure of the element object in React:
+   *   const element = {
+   *     $$typeof: REACT_ELEMENT_TYPE,
+   *     type: type,
+   *     key: key,
+   *     ref: ref, // this does not exist in React >=19
+   *     props: props, // props.ref has the ref in React >=19
+   *     _owner: owner,
    */
 
   // Are we actually looking at the ref: in there, and does it refer to a single variable?
-  if (path.node.key.name !== 'ref' || !t.isIdentifier(path.node.value)) {
+  if (path.node.key.name !== '$$typeof' || !t.isIdentifier(path.node.value)) {
     return;
   }
 
-  // Make sure that we have the $$typeof as a sibling, and it has a variable
-  // reference as its contents.
-  const typeofIdentifierNode = path.parentPath.node.properties.find(property => {
-    return t.isObjectProperty(property) && property.key.name === '$$typeof';
-  });
-  if (!typeofIdentifierNode || !t.isIdentifier(typeofIdentifierNode.value)) {
-    return;
-  }
-
-  // In this case, the typeofDeclPath points to the 'var blah1' declaration
-  // in the above snippet; make sure it's of the form we expect it to be.
-  const typeofDeclPath = path.scope.getBinding(typeofIdentifierNode.value.name).path;
+  // Ensure that the value of $$typeof is a Symbol for 'react.element' or 'react.transitional.element'
+  const typeofDeclPath = path.scope.getBinding(path.node.value.name).path;
   if (
     !t.isVariableDeclarator(typeofDeclPath.node) ||
     !t.isCallExpression(typeofDeclPath.node.init) ||
     // we could validate typeofDeclPath.node.init.callee to make sure it is 'Symbol.for', but life is too long
     typeofDeclPath.node.init.arguments.length != 1 ||
     !t.isStringLiteral(typeofDeclPath.node.init.arguments[0]) ||
-    typeofDeclPath.node.init.arguments[0].value != 'react.element'
+    !(
+      typeofDeclPath.node.init.arguments[0].value === 'react.element' ||
+      typeofDeclPath.node.init.arguments[0].value === 'react.transitional.element'
+    )
   ) {
     return;
   }
 
   // Need to dynamically grab variable names for variables since minified
-  // code will change variable names; this is the lookup for the "var blah2"
+  // code will change variable names; this is the lookup for the "var foo"
   // above.
-  const refIdentifier = path.node.value.name;
   const typeIdentifierNode = path.parentPath.node.properties.find(property => {
     return t.isObjectProperty(property) && property.key.name === 'type';
   });
@@ -484,6 +490,14 @@ function extendReactElementWithRef(path) {
     return t.isObjectProperty(property) && property.key.name === 'props';
   });
 
+  // Doesn't exist in React 19+
+  const refIdentifierNode = path.parentPath.node.properties.find(property => {
+    return t.isObjectProperty(property) && property.key.name === 'ref';
+  });
+
+  if (!typeIdentifierNode || !propsIdentifierNode) {
+    return;
+  }
   const typeIdentifierValueIsIdentifier = t.isIdentifier(typeIdentifierNode.value);
   // variable "type" is a MemberExpression in production code
   const typeIdentifierValueIsMemberExpression = t.isMemberExpression(typeIdentifierNode.value);
@@ -498,9 +512,10 @@ function extendReactElementWithRef(path) {
     ? typeIdentifierNode.value.name
     : typeIdentifierNode.value.object.name;
   const propsIdentifier = propsIdentifierNode.value.name;
+  const refIdentifier = refIdentifierNode && refIdentifierNode.value.name;
 
-  // at long last, insert our code before the object declaration
-  // https://github.com/facebook/react/blob/bbb9cb116dbf7b6247721aa0c4bcb6ec249aa8af/packages/react/src/ReactElement.js#L149
+  // pass props, type, and ref values to the createFabricRefCode for processing
+  // again, these variable identifiers are dynamic due to minification
   const fabricRefCodeAST = babylon.parse(
     _createFabricRefCode(refIdentifier, typeIdentifier, propsIdentifier),
   );

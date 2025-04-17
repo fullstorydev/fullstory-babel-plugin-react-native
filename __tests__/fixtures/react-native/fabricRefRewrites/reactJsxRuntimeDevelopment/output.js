@@ -820,7 +820,8 @@ if (process.env.NODE_ENV !== 'production') {
         if (
           type.$$typeof &&
           (type.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-            type.$$typeof.toString() === 'Symbol(react.element)')
+            type.$$typeof.toString() === 'Symbol(react.element)' ||
+            type.$$typeof.toString() === 'Symbol(react.transitional.element)')
         ) {
           if (props) {
             const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {

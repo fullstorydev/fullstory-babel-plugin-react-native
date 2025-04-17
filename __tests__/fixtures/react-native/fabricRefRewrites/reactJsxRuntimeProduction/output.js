@@ -44,7 +44,8 @@ function q(c, a, g) {
     if (
       c.$$typeof &&
       (c.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-        c.$$typeof.toString() === 'Symbol(react.element)')
+        c.$$typeof.toString() === 'Symbol(react.element)' ||
+        c.$$typeof.toString() === 'Symbol(react.transitional.element)')
     ) {
       if (d) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
