@@ -601,7 +601,11 @@ export default function ({ types: t }) {
 
         // Check if first argument is MaybeScreen
         const maybeScreenComponent = path.node.arguments[0];
-        if (!t.isIdentifier(maybeScreenComponent) || maybeScreenComponent.name !== 'MaybeScreen') {
+        if (
+          !t.isIdentifier(maybeScreenComponent) ||
+          (maybeScreenComponent.name !== 'MaybeScreen' &&
+            maybeScreenComponent.name !== 'ScreenStackItem')
+        ) {
           return;
         }
 
