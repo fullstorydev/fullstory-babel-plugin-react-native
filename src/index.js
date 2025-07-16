@@ -552,7 +552,7 @@ export default function ({ types: t }) {
           extendReactElementWithRef(path);
         }
       },
-      // RN screen selector support
+      // React Navigation <7.x screen name support
       JSXOpeningElement: function JSXOpeningElement(path, state) {
         const filename = state.file.opts.filename;
         const isReactNavigationFile = filename.includes('node_modules/@react-navigation');
@@ -587,6 +587,7 @@ export default function ({ types: t }) {
           );
         }
       },
+      // React Navigation 7.x screen name support
       CallExpression: function CallExpression(path, state) {
         const filename = state.file.opts.filename;
         // only process react-navigation files
