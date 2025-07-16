@@ -26,7 +26,14 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
     if (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)')) {
       if (${propsIdentifier}) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          return typeof ${propsIdentifier}[fsAttribute] === 'string' && !!${propsIdentifier}[fsAttribute];
+          if (!!props[fsAttribute]) {
+            if (fsAttribute === 'fsAttribute') {
+              return typeof props[fsAttribute] === 'object';
+            } else {
+              return typeof props[fsAttribute] === 'string';
+            }
+          }
+          return false;
         });
         
         if (propContainsFSAttribute) {
