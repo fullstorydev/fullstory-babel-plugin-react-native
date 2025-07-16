@@ -110,7 +110,14 @@ function M(a, b, e) {
     ) {
       if (c) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          return typeof c[fsAttribute] === 'string' && !!c[fsAttribute];
+          if (!!props[fsAttribute]) {
+            if (fsAttribute === 'fsAttribute') {
+              return typeof props[fsAttribute] === 'object';
+            } else {
+              return typeof props[fsAttribute] === 'string';
+            }
+          }
+          return false;
         });
         if (propContainsFSAttribute) {
           const fs = require('@fullstory/react-native');
@@ -337,7 +344,14 @@ exports.cloneElement = function (a, b, e) {
     ) {
       if (d) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          return typeof d[fsAttribute] === 'string' && !!d[fsAttribute];
+          if (!!props[fsAttribute]) {
+            if (fsAttribute === 'fsAttribute') {
+              return typeof props[fsAttribute] === 'object';
+            } else {
+              return typeof props[fsAttribute] === 'string';
+            }
+          }
+          return false;
         });
         if (propContainsFSAttribute) {
           const fs = require('@fullstory/react-native');

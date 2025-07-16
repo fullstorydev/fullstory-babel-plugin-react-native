@@ -100,7 +100,14 @@ function ReactElement(type, key, self, source, owner, props) {
     ) {
       if (props) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          return typeof props[fsAttribute] === 'string' && !!props[fsAttribute];
+          if (!!props[fsAttribute]) {
+            if (fsAttribute === 'fsAttribute') {
+              return typeof props[fsAttribute] === 'object';
+            } else {
+              return typeof props[fsAttribute] === 'string';
+            }
+          }
+          return false;
         });
         if (propContainsFSAttribute) {
           const fs = require('@fullstory/react-native');

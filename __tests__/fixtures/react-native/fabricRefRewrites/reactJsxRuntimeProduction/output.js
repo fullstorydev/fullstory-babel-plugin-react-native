@@ -49,7 +49,14 @@ function q(c, a, g) {
     ) {
       if (d) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          return typeof d[fsAttribute] === 'string' && !!d[fsAttribute];
+          if (!!props[fsAttribute]) {
+            if (fsAttribute === 'fsAttribute') {
+              return typeof props[fsAttribute] === 'object';
+            } else {
+              return typeof props[fsAttribute] === 'string';
+            }
+          }
+          return false;
         });
         if (propContainsFSAttribute) {
           const fs = require('@fullstory/react-native');
