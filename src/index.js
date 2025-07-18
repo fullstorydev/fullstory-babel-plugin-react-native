@@ -595,6 +595,16 @@ export default function ({ types: t }) {
           return;
         }
 
+        // Defensive checks for path.node and its properties
+        if (
+          !path.node ||
+          !path.node.callee ||
+          !path.node.arguments ||
+          path.node.arguments.length < 2
+        ) {
+          return;
+        }
+
         // Check if this is a _jsx call
         if (!t.isIdentifier(path.node.callee) || path.node.callee.name !== '_jsx') {
           return;
@@ -612,7 +622,7 @@ export default function ({ types: t }) {
 
         // Check if second argument exists (props object)
         const maybeProps = path.node.arguments[1];
-        if (!maybeProps || !t.isObjectExpression(maybeProps)) {
+        if (!t.isObjectExpression(maybeProps)) {
           return;
         }
 
