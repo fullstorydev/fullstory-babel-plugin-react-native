@@ -23,17 +23,24 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
   ]; 
   const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
-    if (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)')) {
+   if (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)')) {
       if (${propsIdentifier}) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          return typeof ${propsIdentifier}[fsAttribute] === 'string' && !!${propsIdentifier}[fsAttribute];
+          if (!!props[fsAttribute]) {
+            if (fsAttribute === 'fsAttribute') {
+              return typeof props[fsAttribute] === 'object';
+            } else {
+              return typeof props[fsAttribute] === 'string';
+            }
+          }
+          return false;
         });
-        
+
         if (propContainsFSAttribute) {
           const fs  = require('@fullstory/react-native');
           ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
         }
-      }
+      } 
     }
   }`;
 
@@ -545,7 +552,7 @@ export default function ({ types: t }) {
           extendReactElementWithRef(path);
         }
       },
-      // RN screen selector support
+      // React Navigation <7.x screen name support
       JSXOpeningElement: function JSXOpeningElement(path, state) {
         const filename = state.file.opts.filename;
         const isReactNavigationFile = filename.includes('node_modules/@react-navigation');
@@ -579,6 +586,58 @@ export default function ({ types: t }) {
             ),
           );
         }
+      },
+      // React Navigation 7.x screen name support
+      CallExpression: function CallExpression(path, state) {
+        const filename = state.file.opts.filename;
+        // only process react-navigation files
+        if (!filename.includes('node_modules/@react-navigation')) {
+          return;
+        }
+
+        // Defensive checks for path.node and its properties
+        if (
+          !path.node ||
+          !path.node.callee ||
+          !path.node.arguments ||
+          path.node.arguments.length < 2
+        ) {
+          return;
+        }
+
+        // Check if this is a _jsx call
+        if (!t.isIdentifier(path.node.callee) || path.node.callee.name !== '_jsx') {
+          return;
+        }
+
+        // Check if first argument is MaybeScreen
+        const maybeScreenComponent = path.node.arguments[0];
+        if (
+          !t.isIdentifier(maybeScreenComponent) ||
+          (maybeScreenComponent.name !== 'MaybeScreen' &&
+            maybeScreenComponent.name !== 'ScreenStackItem')
+        ) {
+          return;
+        }
+
+        // Check if second argument exists (props object)
+        const maybeProps = path.node.arguments[1];
+        if (!t.isObjectExpression(maybeProps)) {
+          return;
+        }
+
+        // Add fsAttribute to the props object
+        maybeProps.properties.push(
+          t.objectProperty(
+            t.identifier('fsAttribute'),
+            t.objectExpression([
+              t.objectProperty(
+                t.stringLiteral('screen-name'),
+                t.memberExpression(t.identifier('route'), t.identifier('name')),
+              ),
+            ]),
+          ),
+        );
       },
       JSXAttribute(path) {
         // disable view optimization for only View component
