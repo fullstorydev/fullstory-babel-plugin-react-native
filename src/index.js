@@ -89,19 +89,6 @@ const _onFsPressForward_PressabilityCode = `_onFsPressForward_Pressability = fun
 const _onFsPressForwardCallLongPress_PressabilityCode = `this._onFsPressForward_Pressability(true)`;
 const _onFsPressForwardCallPress_PressabilityCode = `this._onFsPressForward_Pressability(false)`;
 
-const _onFsPressForward_PressabilityAst = babylon.parseExpression(
-  _onFsPressForward_PressabilityCode,
-  {},
-);
-const _onFsPressForwardCallLongPress_PressabilityAst = babylon.parseExpression(
-  _onFsPressForwardCallLongPress_PressabilityCode,
-  {},
-);
-const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(
-  _onFsPressForwardCallPress_PressabilityCode,
-  {},
-);
-
 // This is the code that we will generate for Touchable.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
 const _onFsPressForwardCode = `_onFsPressForward = function(isLongPress) {
@@ -344,6 +331,19 @@ function fixPressability(t, path) {
         classMethodPath.node.key &&
         classMethodPath.node.key.name == '_performTransitionSideEffects'
       ) {
+        const _onFsPressForward_PressabilityAst = babylon.parseExpression(
+          _onFsPressForward_PressabilityCode,
+          {},
+        );
+        const _onFsPressForwardCallLongPress_PressabilityAst = babylon.parseExpression(
+          _onFsPressForwardCallLongPress_PressabilityCode,
+          {},
+        );
+        const _onFsPressForwardCallPress_PressabilityAst = babylon.parseExpression(
+          _onFsPressForwardCallPress_PressabilityCode,
+          {},
+        );
+
         // this method is named `_performTransitionSideEffects`, so traverse the body
         classMethodPath.traverse({
           CallExpression(callPath) {
