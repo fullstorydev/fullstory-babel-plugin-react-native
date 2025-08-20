@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1
+
+Fixed a metro bundling error on Expo that occurs when two applications connected to the same metro server.
+
 ## 1.4.0
 
 Added support for React Native 78.
