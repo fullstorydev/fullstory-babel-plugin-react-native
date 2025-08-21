@@ -7,8 +7,9 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-const { applyFSPropertiesWithRef } = require('@fullstory/react-native/src');
-('use strict');
+
+'use strict';
+
 'production' !== process.env.NODE_ENV &&
   (function () {
     function defineDeprecationWarning(methodName, info) {
@@ -437,11 +438,6 @@ const { applyFSPropertiesWithRef } = require('@fullstory/react-native/src');
       return void 0 !== componentName ? componentName : null;
     }
     function ReactElement(type, key, self, source, owner, props) {
-      props = {
-        ...props,
-        ref: applyFSPropertiesWithRef(props.ref),
-      };
-      self = props.ref;
       const { Platform } = require('react-native');
       const SUPPORTED_FS_ATTRIBUTES = [
         'fsClass',
@@ -453,33 +449,27 @@ const { applyFSPropertiesWithRef } = require('@fullstory/react-native/src');
       ];
       const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
       if (isTurboModuleEnabled && Platform.OS === 'ios') {
-        if (
-          type.$$typeof &&
-          (type.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-            type.$$typeof.toString() === 'Symbol(react.element)' ||
-            type.$$typeof.toString() === 'Symbol(react.transitional.element)')
-        ) {
-          if (props) {
-            const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-              if (!!props[fsAttribute]) {
-                if (fsAttribute === 'fsAttribute') {
-                  return typeof props[fsAttribute] === 'object';
-                } else {
-                  return typeof props[fsAttribute] === 'string';
-                }
+        if (props) {
+          const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
+            if (!!props[fsAttribute]) {
+              if (fsAttribute === 'fsAttribute') {
+                return typeof props[fsAttribute] === 'object';
+              } else {
+                return typeof props[fsAttribute] === 'string';
               }
-              return false;
-            });
-            if (propContainsFSAttribute) {
-              const fs = require('@fullstory/react-native');
-              props = {
-                ...props,
-                ref: fs.applyFSPropertiesWithRef(props['ref']),
-              };
             }
+            return false;
+          });
+          if (propContainsFSAttribute) {
+            const fs = require('@fullstory/react-native');
+            props = {
+              ...props,
+              ref: fs.applyFSPropertiesWithRef(props['ref']),
+            };
           }
         }
       }
+      self = props.ref;
       type = {
         $$typeof: REACT_ELEMENT_TYPE,
         type: type,

@@ -11,7 +11,7 @@ const setRefBackwardCompat = (refIdentifier, propsIdentifier) => {
   return `${propsIdentifier} = { ...${propsIdentifier}, ref: fs.applyFSPropertiesWithRef(${propsIdentifier}['ref']) }`;
 };
 // We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
-const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
+const _createFabricRefCode = (refIdentifier, propsIdentifier) => `
   const { Platform } = require('react-native');
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
@@ -23,25 +23,23 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
   ]; 
   const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
-   if (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)')) {
-      if (${propsIdentifier}) {
-        const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          if (!!props[fsAttribute]) {
-            if (fsAttribute === 'fsAttribute') {
-              return typeof props[fsAttribute] === 'object';
-            } else {
-              return typeof props[fsAttribute] === 'string';
-            }
+    if (${propsIdentifier}) {
+      const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
+        if (!!props[fsAttribute]) {
+          if (fsAttribute === 'fsAttribute') {
+            return typeof props[fsAttribute] === 'object';
+          } else {
+            return typeof props[fsAttribute] === 'string';
           }
-          return false;
-        });
-
-        if (propContainsFSAttribute) {
-          const fs  = require('@fullstory/react-native');
-          ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
         }
-      } 
-    }
+        return false;
+      });
+
+      if (propContainsFSAttribute) {
+        const fs  = require('@fullstory/react-native');
+        ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
+      }
+    } 
   }`;
 
 // This is the code that we will generate for Pressability.
@@ -487,6 +485,38 @@ function extendReactElementWithRef(path) {
     return;
   }
 
+  // Find function declaration, variable declaration, or assignment expression
+  const functionPath = path.findParent(p => {
+    // Case 1: function ReactElement() {...}
+    if (p.isFunctionDeclaration()) {
+      return true;
+    }
+    // Case 2: var ReactElement = function() {...}
+    if (
+      p.isVariableDeclarator() &&
+      p.node.id &&
+      p.node.id.name === 'ReactElement' &&
+      t.isFunctionExpression(p.node.init)
+    ) {
+      return true;
+    }
+    // Case 3: exports.cloneElement = function() {...}
+    if (
+      p.isAssignmentExpression() &&
+      t.isMemberExpression(p.node.left) &&
+      t.isIdentifier(p.node.left.property) &&
+      p.node.left.property.name === 'cloneElement' &&
+      t.isFunctionExpression(p.node.right)
+    ) {
+      return true;
+    }
+    return false;
+  });
+
+  if (!functionPath) {
+    return;
+  }
+
   // Need to dynamically grab variable names for variables since minified
   // code will change variable names; this is the lookup for the "var foo"
   // above.
@@ -505,28 +535,31 @@ function extendReactElementWithRef(path) {
   if (!typeIdentifierNode || !propsIdentifierNode) {
     return;
   }
-  const typeIdentifierValueIsIdentifier = t.isIdentifier(typeIdentifierNode.value);
-  // variable "type" is a MemberExpression in production code
-  const typeIdentifierValueIsMemberExpression = t.isMemberExpression(typeIdentifierNode.value);
 
-  if (
-    !(typeIdentifierValueIsIdentifier || typeIdentifierValueIsMemberExpression) ||
-    !t.isIdentifier(propsIdentifierNode.value)
-  ) {
+  if (!t.isIdentifier(propsIdentifierNode.value)) {
     return;
   }
-  const typeIdentifier = typeIdentifierValueIsIdentifier
-    ? typeIdentifierNode.value.name
-    : typeIdentifierNode.value.object.name;
   const propsIdentifier = propsIdentifierNode.value.name;
   const refIdentifier = refIdentifierNode && refIdentifierNode.value.name;
 
   // pass props, type, and ref values to the createFabricRefCode for processing
   // again, these variable identifiers are dynamic due to minification
-  const fabricRefCodeAST = babylon.parse(
-    _createFabricRefCode(refIdentifier, typeIdentifier, propsIdentifier),
-  );
-  path.getStatementParent().insertBefore(fabricRefCodeAST.program.body);
+  const fabricRefCodeAST = babylon.parse(_createFabricRefCode(refIdentifier, propsIdentifier));
+
+  // Insert the function within the function body depending on the type of declaration
+  if (refIdentifier) {
+    // React versions < 19
+    path.getStatementParent().insertBefore(fabricRefCodeAST.program.body);
+  } else {
+    // React versions >= 19
+    if (functionPath.isFunctionDeclaration()) {
+      const functionBody = functionPath.get('body');
+      functionBody.unshiftContainer('body', fabricRefCodeAST.program.body);
+    } else if (functionPath.isVariableDeclarator()) {
+      const functionBody = functionPath.get('init.body');
+      functionBody.unshiftContainer('body', fabricRefCodeAST.program.body);
+    }
+  }
 }
 
 /* eslint-disable complexity */

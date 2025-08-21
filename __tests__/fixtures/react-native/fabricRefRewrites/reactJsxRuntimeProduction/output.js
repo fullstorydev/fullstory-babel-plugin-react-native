@@ -41,27 +41,20 @@ function q(c, a, g) {
   ];
   const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
-    if (
-      c.$$typeof &&
-      (c.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-        c.$$typeof.toString() === 'Symbol(react.element)' ||
-        c.$$typeof.toString() === 'Symbol(react.transitional.element)')
-    ) {
-      if (d) {
-        const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          if (!!props[fsAttribute]) {
-            if (fsAttribute === 'fsAttribute') {
-              return typeof props[fsAttribute] === 'object';
-            } else {
-              return typeof props[fsAttribute] === 'string';
-            }
+    if (d) {
+      const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
+        if (!!props[fsAttribute]) {
+          if (fsAttribute === 'fsAttribute') {
+            return typeof props[fsAttribute] === 'object';
+          } else {
+            return typeof props[fsAttribute] === 'string';
           }
-          return false;
-        });
-        if (propContainsFSAttribute) {
-          const fs = require('@fullstory/react-native');
-          h = fs.applyFSPropertiesWithRef(h);
         }
+        return false;
+      });
+      if (propContainsFSAttribute) {
+        const fs = require('@fullstory/react-native');
+        h = fs.applyFSPropertiesWithRef(h);
       }
     }
   }

@@ -372,7 +372,6 @@
       return void 0 !== componentName ? componentName : null;
     }
     function ReactElement(type, key, self, source, owner, props) {
-      self = props.ref;
       const { Platform } = require('react-native');
       const SUPPORTED_FS_ATTRIBUTES = [
         'fsClass',
@@ -384,33 +383,27 @@
       ];
       const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
       if (isTurboModuleEnabled && Platform.OS === 'ios') {
-        if (
-          type.$$typeof &&
-          (type.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-            type.$$typeof.toString() === 'Symbol(react.element)' ||
-            type.$$typeof.toString() === 'Symbol(react.transitional.element)')
-        ) {
-          if (props) {
-            const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-              if (!!props[fsAttribute]) {
-                if (fsAttribute === 'fsAttribute') {
-                  return typeof props[fsAttribute] === 'object';
-                } else {
-                  return typeof props[fsAttribute] === 'string';
-                }
+        if (props) {
+          const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
+            if (!!props[fsAttribute]) {
+              if (fsAttribute === 'fsAttribute') {
+                return typeof props[fsAttribute] === 'object';
+              } else {
+                return typeof props[fsAttribute] === 'string';
               }
-              return false;
-            });
-            if (propContainsFSAttribute) {
-              const fs = require('@fullstory/react-native');
-              props = {
-                ...props,
-                ref: fs.applyFSPropertiesWithRef(props['ref']),
-              };
             }
+            return false;
+          });
+          if (propContainsFSAttribute) {
+            const fs = require('@fullstory/react-native');
+            props = {
+              ...props,
+              ref: fs.applyFSPropertiesWithRef(props['ref']),
+            };
           }
         }
       }
+      self = props.ref;
       type = {
         $$typeof: REACT_ELEMENT_TYPE,
         type: type,
