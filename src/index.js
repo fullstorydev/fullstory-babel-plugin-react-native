@@ -25,11 +25,11 @@ const _createFabricRefCode = (refIdentifier, propsIdentifier) => `
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
     if (${propsIdentifier}) {
       const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-        if (!!props[fsAttribute]) {
+        if (!!${propsIdentifier}[fsAttribute]) {
           if (fsAttribute === 'fsAttribute') {
-            return typeof props[fsAttribute] === 'object';
+            return typeof ${propsIdentifier}[fsAttribute] === 'object';
           } else {
-            return typeof props[fsAttribute] === 'string';
+            return typeof ${propsIdentifier}[fsAttribute] === 'string';
           }
         }
         return false;
@@ -552,6 +552,24 @@ function extendReactElementWithRef(path) {
     path.getStatementParent().insertBefore(fabricRefCodeAST.program.body);
   } else {
     // React versions >= 19
+
+    // For jsxProd function, we need to handle the ref extraction differently
+    if (functionPath.node.id && functionPath.node.id.name === 'jsxProd') {
+      functionPath.traverse({
+        AssignmentExpression(assignPath) {
+          if (
+            t.isIdentifier(assignPath.node.left, { name: 'config' }) &&
+            t.isMemberExpression(assignPath.node.right) &&
+            t.isIdentifier(assignPath.node.right.object, { name: 'maybeKey' })
+          ) {
+            const fabricRefCodeAST = babylon.parse(_createFabricRefCode(null, 'maybeKey'));
+            assignPath.insertBefore(fabricRefCodeAST.program.body);
+          }
+        },
+      });
+      return;
+    }
+
     if (functionPath.isFunctionDeclaration()) {
       const functionBody = functionPath.get('body');
       functionBody.unshiftContainer('body', fabricRefCodeAST.program.body);

@@ -104,11 +104,11 @@ function M(a, b, e) {
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
     if (c) {
       const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-        if (!!props[fsAttribute]) {
+        if (!!c[fsAttribute]) {
           if (fsAttribute === 'fsAttribute') {
-            return typeof props[fsAttribute] === 'object';
+            return typeof c[fsAttribute] === 'object';
           } else {
-            return typeof props[fsAttribute] === 'string';
+            return typeof c[fsAttribute] === 'string';
           }
         }
         return false;
@@ -331,11 +331,11 @@ exports.cloneElement = function (a, b, e) {
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
     if (d) {
       const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-        if (!!props[fsAttribute]) {
+        if (!!d[fsAttribute]) {
           if (fsAttribute === 'fsAttribute') {
-            return typeof props[fsAttribute] === 'object';
+            return typeof d[fsAttribute] === 'object';
           } else {
-            return typeof props[fsAttribute] === 'string';
+            return typeof d[fsAttribute] === 'string';
           }
         }
         return false;

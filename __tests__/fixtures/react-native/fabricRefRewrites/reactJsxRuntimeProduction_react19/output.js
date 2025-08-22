@@ -13,6 +13,13 @@
 var REACT_ELEMENT_TYPE = Symbol.for('react.transitional.element'),
   REACT_FRAGMENT_TYPE = Symbol.for('react.fragment');
 function jsxProd(type, config, maybeKey) {
+  var key = null;
+  void 0 !== maybeKey && (key = '' + maybeKey);
+  void 0 !== config.key && (key = '' + config.key);
+  if ('key' in config) {
+    maybeKey = {};
+    for (var propName in config) 'key' !== propName && (maybeKey[propName] = config[propName]);
+  } else maybeKey = config;
   const { Platform } = require('react-native');
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
@@ -26,11 +33,11 @@ function jsxProd(type, config, maybeKey) {
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
     if (maybeKey) {
       const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-        if (!!props[fsAttribute]) {
+        if (!!maybeKey[fsAttribute]) {
           if (fsAttribute === 'fsAttribute') {
-            return typeof props[fsAttribute] === 'object';
+            return typeof maybeKey[fsAttribute] === 'object';
           } else {
-            return typeof props[fsAttribute] === 'string';
+            return typeof maybeKey[fsAttribute] === 'string';
           }
         }
         return false;
@@ -44,13 +51,6 @@ function jsxProd(type, config, maybeKey) {
       }
     }
   }
-  var key = null;
-  void 0 !== maybeKey && (key = '' + maybeKey);
-  void 0 !== config.key && (key = '' + config.key);
-  if ('key' in config) {
-    maybeKey = {};
-    for (var propName in config) 'key' !== propName && (maybeKey[propName] = config[propName]);
-  } else maybeKey = config;
   config = maybeKey.ref;
   return {
     $$typeof: REACT_ELEMENT_TYPE,
