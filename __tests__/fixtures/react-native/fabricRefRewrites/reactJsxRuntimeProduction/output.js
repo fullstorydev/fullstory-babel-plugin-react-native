@@ -31,6 +31,17 @@ function q(c, a, g) {
   for (b in a) m.call(a, b) && !p.hasOwnProperty(b) && (d[b] = a[b]);
   if (c && c.defaultProps) for (b in ((a = c.defaultProps), a)) void 0 === d[b] && (d[b] = a[b]);
   const { Platform } = require('react-native');
+  function isReact19Plus() {
+    const { version } = require('react');
+    try {
+      if (version) {
+        const majorVersion = parseInt(version.split('.')[0], 10);
+        return majorVersion >= 19;
+      }
+    } catch {}
+    // fallback to React 18
+    return false;
+  }
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
     'fsAttribute',
@@ -42,18 +53,19 @@ function q(c, a, g) {
   const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
     if (
-      c.$$typeof &&
-      (c.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-        c.$$typeof.toString() === 'Symbol(react.element)' ||
-        c.$$typeof.toString() === 'Symbol(react.transitional.element)')
+      isReact19Plus() ||
+      (c.$$typeof &&
+        (c.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
+          c.$$typeof.toString() === 'Symbol(react.element)' ||
+          c.$$typeof.toString() === 'Symbol(react.transitional.element)'))
     ) {
       if (d) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          if (!!props[fsAttribute]) {
+          if (!!d[fsAttribute]) {
             if (fsAttribute === 'fsAttribute') {
-              return typeof props[fsAttribute] === 'object';
+              return typeof d[fsAttribute] === 'object';
             } else {
-              return typeof props[fsAttribute] === 'string';
+              return typeof d[fsAttribute] === 'string';
             }
           }
           return false;

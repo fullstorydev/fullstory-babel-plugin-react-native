@@ -13,6 +13,18 @@ const setRefBackwardCompat = (refIdentifier, propsIdentifier) => {
 // We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
 const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
   const { Platform } = require('react-native');
+  function isReact19Plus() {
+    const { version } = require('react');
+    try {
+      if (version) {
+        const majorVersion = parseInt(version.split('.')[0], 10);
+      return majorVersion >= 19;
+    }
+  } catch {}
+  // fallback to React 18
+  return false;
+}
+
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
     'fsAttribute',
@@ -23,25 +35,25 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
   ]; 
   const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
-   if (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)')) {
-      if (${propsIdentifier}) {
-        const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          if (!!props[fsAttribute]) {
-            if (fsAttribute === 'fsAttribute') {
-              return typeof props[fsAttribute] === 'object';
-            } else {
-              return typeof props[fsAttribute] === 'string';
-            }
+  if (isReact19Plus() || (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)'))) {
+    if (${propsIdentifier}) {
+      const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
+        if (!!${propsIdentifier}[fsAttribute]) {
+          if (fsAttribute === 'fsAttribute') {
+            return typeof ${propsIdentifier}[fsAttribute] === 'object';
+          } else {
+            return typeof ${propsIdentifier}[fsAttribute] === 'string';
           }
-          return false;
-        });
-
-        if (propContainsFSAttribute) {
-          const fs  = require('@fullstory/react-native');
-          ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
         }
-      } 
-    }
+        return false;
+      });
+
+      if (propContainsFSAttribute) {
+        const fs  = require('@fullstory/react-native');
+        ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
+        }
+      }
+    } 
   }`;
 
 // This is the code that we will generate for Pressability.
