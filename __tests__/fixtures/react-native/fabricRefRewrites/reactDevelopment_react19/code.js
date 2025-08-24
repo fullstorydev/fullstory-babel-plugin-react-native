@@ -7,9 +7,8 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-const { applyFSPropertiesWithRef } = require('@fullstory/react-native/src');
 
-('use strict');
+'use strict';
 'production' !== process.env.NODE_ENV &&
   (function () {
     function defineDeprecationWarning(methodName, info) {
@@ -420,7 +419,6 @@ const { applyFSPropertiesWithRef } = require('@fullstory/react-native/src');
       return void 0 !== componentName ? componentName : null;
     }
     function ReactElement(type, key, self, source, owner, props) {
-      props = { ...props, ref: applyFSPropertiesWithRef(props.ref) };
       self = props.ref;
       type = {
         $$typeof: REACT_ELEMENT_TYPE,

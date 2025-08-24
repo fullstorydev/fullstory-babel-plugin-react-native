@@ -22,6 +22,17 @@ function jsxProd(type, config, maybeKey) {
   } else maybeKey = config;
   config = maybeKey.ref;
   const { Platform } = require('react-native');
+  function isReact19Plus() {
+    const { version } = require('react');
+    try {
+      if (version) {
+        const majorVersion = parseInt(version.split('.')[0], 10);
+        return majorVersion >= 19;
+      }
+    } catch {}
+    // fallback to React 18
+    return false;
+  }
   const SUPPORTED_FS_ATTRIBUTES = [
     'fsClass',
     'fsAttribute',
@@ -33,18 +44,19 @@ function jsxProd(type, config, maybeKey) {
   const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
     if (
-      type.$$typeof &&
-      (type.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-        type.$$typeof.toString() === 'Symbol(react.element)' ||
-        type.$$typeof.toString() === 'Symbol(react.transitional.element)')
+      isReact19Plus() ||
+      (type.$$typeof &&
+        (type.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
+          type.$$typeof.toString() === 'Symbol(react.element)' ||
+          type.$$typeof.toString() === 'Symbol(react.transitional.element)'))
     ) {
       if (maybeKey) {
         const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          if (!!props[fsAttribute]) {
+          if (!!maybeKey[fsAttribute]) {
             if (fsAttribute === 'fsAttribute') {
-              return typeof props[fsAttribute] === 'object';
+              return typeof maybeKey[fsAttribute] === 'object';
             } else {
-              return typeof props[fsAttribute] === 'string';
+              return typeof maybeKey[fsAttribute] === 'string';
             }
           }
           return false;
