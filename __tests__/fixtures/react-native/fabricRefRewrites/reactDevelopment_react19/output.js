@@ -7,8 +7,9 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-const { applyFSPropertiesWithRef } = require('@fullstory/react-native/src');
-('use strict');
+
+'use strict';
+
 'production' !== process.env.NODE_ENV &&
   (function () {
     function defineDeprecationWarning(methodName, info) {
@@ -437,12 +438,19 @@ const { applyFSPropertiesWithRef } = require('@fullstory/react-native/src');
       return void 0 !== componentName ? componentName : null;
     }
     function ReactElement(type, key, self, source, owner, props) {
-      props = {
-        ...props,
-        ref: applyFSPropertiesWithRef(props.ref),
-      };
       self = props.ref;
       const { Platform } = require('react-native');
+      function isReact19Plus() {
+        const { version } = require('react');
+        try {
+          if (version) {
+            const majorVersion = parseInt(version.split('.')[0], 10);
+            return majorVersion >= 19;
+          }
+        } catch {}
+        // fallback to React 18
+        return false;
+      }
       const SUPPORTED_FS_ATTRIBUTES = [
         'fsClass',
         'fsAttribute',
@@ -454,10 +462,11 @@ const { applyFSPropertiesWithRef } = require('@fullstory/react-native/src');
       const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
       if (isTurboModuleEnabled && Platform.OS === 'ios') {
         if (
-          type.$$typeof &&
-          (type.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-            type.$$typeof.toString() === 'Symbol(react.element)' ||
-            type.$$typeof.toString() === 'Symbol(react.transitional.element)')
+          isReact19Plus() ||
+          (type.$$typeof &&
+            (type.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
+              type.$$typeof.toString() === 'Symbol(react.element)' ||
+              type.$$typeof.toString() === 'Symbol(react.transitional.element)'))
         ) {
           if (props) {
             const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
