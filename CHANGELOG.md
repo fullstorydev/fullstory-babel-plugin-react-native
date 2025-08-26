@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0
+
+Added support for React Native 81 and a bugfix for React 19.
+
 ## 1.4.1
 
 Fixed a metro bundling error on Expo that occurs when two applications connected to the same metro server.
