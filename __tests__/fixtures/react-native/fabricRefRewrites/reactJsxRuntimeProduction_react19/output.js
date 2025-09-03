@@ -65,7 +65,7 @@ function jsxProd(type, config, maybeKey) {
           const fs = require('@fullstory/react-native');
           maybeKey = {
             ...maybeKey,
-            ref: fs.applyFSPropertiesWithRef(maybeKey['ref']),
+            ref: fs.applyFSPropertiesWithRef(maybeKey['ref'] || maybeKey['forwardedRef']),
           };
         }
       }

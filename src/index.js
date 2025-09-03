@@ -8,7 +8,7 @@ const setRefBackwardCompat = (refIdentifier, propsIdentifier) => {
     return `${refIdentifier} = fs.applyFSPropertiesWithRef(${refIdentifier});`;
   }
   // React versions >= 19
-  return `${propsIdentifier} = { ...${propsIdentifier}, ref: fs.applyFSPropertiesWithRef(${propsIdentifier}['ref']) }`;
+  return `${propsIdentifier} = { ...${propsIdentifier}, ref: fs.applyFSPropertiesWithRef(${propsIdentifier}['ref'] || ${propsIdentifier}['forwardedRef']) }`;
 };
 // We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
 const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
@@ -49,8 +49,8 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
       });
 
       if (propContainsFSAttribute) {
-        const fs  = require('@fullstory/react-native');
-        ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
+          const fs  = require('@fullstory/react-native');
+          ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
         }
       }
     } 
