@@ -35,20 +35,20 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
   ]; 
   const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null
   if (isTurboModuleEnabled && Platform.OS === 'ios') {
-  if (isReact19Plus() || (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)'))) {
-    if (${propsIdentifier}) {
-      const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-        if (!!${propsIdentifier}[fsAttribute]) {
-          if (fsAttribute === 'fsAttribute') {
-            return typeof ${propsIdentifier}[fsAttribute] === 'object';
-          } else {
-            return typeof ${propsIdentifier}[fsAttribute] === 'string';
+    if (isReact19Plus() || (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)'))) {
+      if (${propsIdentifier}) {
+        const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
+          if (!!${propsIdentifier}[fsAttribute]) {
+            if (fsAttribute === 'fsAttribute') {
+              return typeof ${propsIdentifier}[fsAttribute] === 'object';
+            } else {
+              return typeof ${propsIdentifier}[fsAttribute] === 'string';
+            }
           }
-        }
-        return false;
-      });
+          return false;
+        });
 
-      if (propContainsFSAttribute) {
+        if (propContainsFSAttribute) {
           const fs  = require('@fullstory/react-native');
           ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
         }
