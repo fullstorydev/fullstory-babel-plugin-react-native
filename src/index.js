@@ -8,16 +8,16 @@ const setRefBackwardCompat = (refIdentifier, propsIdentifier) => {
     return `${refIdentifier} = fs.applyFSPropertiesWithRef(${refIdentifier});`;
   }
   // React versions >= 19
-  return `${propsIdentifier} = { ...${propsIdentifier}, ref: fs.applyFSPropertiesWithRef(${propsIdentifier}['ref']) }`;
+  return `${propsIdentifier} = { ...${propsIdentifier}, ref: fs.applyFSPropertiesWithRef(${propsIdentifier}['ref'] || ${propsIdentifier}['forwardedRef']) }`;
 };
 // We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
 const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
-  const { Platform } = require('react-native');
-  function isReact19Plus() {
-    const { version } = require('react');
-    try {
-      if (version) {
-        const majorVersion = parseInt(version.split('.')[0], 10);
+const { Platform } = require('react-native');
+function isReact19Plus() {
+  const { version } = require('react');
+  try {
+    if (version) {
+      const majorVersion = parseInt(version.split('.')[0], 10);
       return majorVersion >= 19;
     }
   } catch {}
@@ -25,16 +25,16 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
   return false;
 }
 
-  const SUPPORTED_FS_ATTRIBUTES = [
-    'fsClass',
-    'fsAttribute',
-    'fsTagName',
-    'dataElement',
-    'dataComponent',
-    'dataSourceFile',
-  ]; 
-  const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null
-  if (isTurboModuleEnabled && Platform.OS === 'ios') {
+const SUPPORTED_FS_ATTRIBUTES = [
+  'fsClass',
+  'fsAttribute',
+  'fsTagName',
+  'dataElement',
+  'dataComponent',
+  'dataSourceFile',
+]; 
+const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null
+if (isTurboModuleEnabled && Platform.OS === 'ios') {
   if (isReact19Plus() || (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)'))) {
     if (${propsIdentifier}) {
       const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
@@ -51,10 +51,10 @@ const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) =>
       if (propContainsFSAttribute) {
         const fs  = require('@fullstory/react-native');
         ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
-        }
       }
-    } 
-  }`;
+    }
+  } 
+}`;
 
 // This is the code that we will generate for Pressability.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.

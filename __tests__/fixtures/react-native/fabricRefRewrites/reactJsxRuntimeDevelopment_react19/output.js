@@ -417,7 +417,7 @@
               const fs = require('@fullstory/react-native');
               props = {
                 ...props,
-                ref: fs.applyFSPropertiesWithRef(props['ref']),
+                ref: fs.applyFSPropertiesWithRef(props['ref'] || props['forwardedRef']),
               };
             }
           }
