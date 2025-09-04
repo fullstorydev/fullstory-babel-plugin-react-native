@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1
+
+Fixed thrown error in `react-native-gesture-handler` where `TextInput` lost their `forwardedRef`.
+
 ## 1.5.0
 
 Added support for React Native 81 and a bugfix for React 19.
