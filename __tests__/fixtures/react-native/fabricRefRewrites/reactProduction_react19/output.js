@@ -125,7 +125,11 @@ function ReactElement(type, key, self, source, owner, props) {
           const fs = require('@fullstory/react-native');
           props = {
             ...props,
-            ref: fs.applyFSPropertiesWithRef(props['ref'] || props['forwardedRef']),
+            ...(!props['ref'] && props['forwardedRef']
+              ? {}
+              : {
+                  ref: fs.applyFSPropertiesWithRef(props['ref']),
+                }),
           };
         }
       }
