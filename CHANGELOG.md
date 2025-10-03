@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.2
+
+Fixed a bug where `refs` lose their associated methods, causing no-ops in `TextInput` `refs`.
+
 ## 1.5.1
 
 Fixed thrown error in `react-native-gesture-handler` where `TextInput` lost their `forwardedRef`.
