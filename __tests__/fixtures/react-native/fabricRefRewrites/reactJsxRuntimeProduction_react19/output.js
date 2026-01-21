@@ -21,57 +21,42 @@ function jsxProd(type, config, maybeKey) {
     for (var propName in config) 'key' !== propName && (maybeKey[propName] = config[propName]);
   } else maybeKey = config;
   config = maybeKey.ref;
-  const { Platform } = require('react-native');
-  function isReact19Plus() {
-    const { version } = require('react');
-    try {
-      if (version) {
-        const majorVersion = parseInt(version.split('.')[0], 10);
-        return majorVersion >= 19;
-      }
-    } catch {}
-    // fallback to React 18
-    return false;
+  if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef === undefined) {
+    const { Platform } = require('react-native');
+    global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef =
+      (global.RN$Bridgeless || global.__turboModuleProxy != null) && Platform.OS === 'ios';
   }
-  const SUPPORTED_FS_ATTRIBUTES = [
-    'fsClass',
-    'fsAttribute',
-    'fsTagName',
-    'dataElement',
-    'dataComponent',
-    'dataSourceFile',
-  ];
-  const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
-  if (isTurboModuleEnabled && Platform.OS === 'ios') {
-    if (
-      isReact19Plus() ||
-      (type.$$typeof &&
-        (type.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-          type.$$typeof.toString() === 'Symbol(react.element)' ||
-          type.$$typeof.toString() === 'Symbol(react.transitional.element)'))
-    ) {
-      if (maybeKey) {
-        const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          if (!!maybeKey[fsAttribute]) {
-            if (fsAttribute === 'fsAttribute') {
-              return typeof maybeKey[fsAttribute] === 'object';
-            } else {
-              return typeof maybeKey[fsAttribute] === 'string';
-            }
-          }
-          return false;
-        });
-        if (propContainsFSAttribute) {
-          const fs = require('@fullstory/react-native');
-          maybeKey = {
-            ...maybeKey,
-            ...(!maybeKey['ref'] && maybeKey['forwardedRef']
-              ? {}
-              : {
-                  ref: fs.applyFSPropertiesWithRef(maybeKey['ref']),
-                }),
-          };
+  if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
+    const typeSymbol = type.$$typeof;
+    const typeString = typeSymbol ? typeSymbol.toString() : '';
+    const isValidType =
+      false ||
+      typeString === 'Symbol(react.forward_ref)' ||
+      typeString === 'Symbol(react.element)' ||
+      typeString === 'Symbol(react.transitional.element)';
+    if (isValidType && maybeKey) {
+      const hasFSAttribute = !!(
+        maybeKey.fsClass ||
+        maybeKey.fsAttribute ||
+        maybeKey.fsTagName ||
+        maybeKey.dataElement ||
+        maybeKey.dataComponent ||
+        maybeKey.dataSourceFile
+      );
+      if (hasFSAttribute) {
+        if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
+          global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
         }
+        maybeKey = {
+          ...maybeKey,
+          ...(!maybeKey['ref'] && maybeKey['forwardedRef']
+            ? {}
+            : {
+                ref: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
+                  maybeKey['ref'],
+                ),
+              }),
+        };
       }
     }
   }

@@ -1,21 +1,10 @@
 import * as babylon from '@babel/parser';
 import * as t from '@babel/types';
 
-// The return value of this function will be evaluated as JavaScript code.
-const setRefBackwardCompat = (refIdentifier, propsIdentifier) => {
-  if (refIdentifier) {
-    // React versions < 19
-    return `${refIdentifier} = fs.applyFSPropertiesWithRef(${refIdentifier});`;
-  }
-  // React versions >= 19
-  return `${propsIdentifier} = { ...${propsIdentifier}, ...(!${propsIdentifier}['ref'] && ${propsIdentifier}['forwardedRef'] ? {} : { ref: fs.applyFSPropertiesWithRef(${propsIdentifier}['ref']) }) }`;
-};
-// We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
-const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
-const { Platform } = require('react-native');
-function isReact19Plus() {
-  const { version } = require('react');
+// Compute React version ONCE at build time (when Babel plugin loads)
+const IS_REACT_19_PLUS = (() => {
   try {
+    const { version } = require('react');
     if (version) {
       const majorVersion = parseInt(version.split('.')[0], 10);
       return majorVersion >= 19;
@@ -23,37 +12,36 @@ function isReact19Plus() {
   } catch {}
   // fallback to React 18
   return false;
+})();
+
+const setRefBackwardCompat = (refIdentifier, propsIdentifier, moduleRef) => {
+  if (refIdentifier) {
+    // React versions < 19
+    return `${refIdentifier} = ${moduleRef}.applyFSPropertiesWithRef(${refIdentifier});`;
+  }
+  // React versions >= 19
+  return `${propsIdentifier} = { ...${propsIdentifier}, ...(!${propsIdentifier}['ref'] && ${propsIdentifier}['forwardedRef'] ? {} : { ref: ${moduleRef}.applyFSPropertiesWithRef(${propsIdentifier}['ref']) }) }`;
+};
+
+// We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
+const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
+if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef === undefined) {
+  const { Platform } = require('react-native');
+  global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef = (global.RN$Bridgeless || global.__turboModuleProxy != null) && Platform.OS === 'ios';
 }
-
-const SUPPORTED_FS_ATTRIBUTES = [
-  'fsClass',
-  'fsAttribute',
-  'fsTagName',
-  'dataElement',
-  'dataComponent',
-  'dataSourceFile',
-]; 
-const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null
-if (isTurboModuleEnabled && Platform.OS === 'ios') {
-  if (isReact19Plus() || (${typeIdentifier}.$$typeof && (${typeIdentifier}.$$typeof.toString() === 'Symbol(react.forward_ref)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.element)' || ${typeIdentifier}.$$typeof.toString() === 'Symbol(react.transitional.element)'))) {
-    if (${propsIdentifier}) {
-      const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-        if (!!${propsIdentifier}[fsAttribute]) {
-          if (fsAttribute === 'fsAttribute') {
-            return typeof ${propsIdentifier}[fsAttribute] === 'object';
-          } else {
-            return typeof ${propsIdentifier}[fsAttribute] === 'string';
-          }
-        }
-        return false;
-      });
-
-      if (propContainsFSAttribute) {
-        const fs  = require('@fullstory/react-native');
-        ${setRefBackwardCompat(refIdentifier, propsIdentifier)}
+if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
+  const typeSymbol = ${typeIdentifier}.$$typeof;
+  const typeString = typeSymbol ? typeSymbol.toString() : '';
+  const isValidType = ${IS_REACT_19_PLUS} || (typeString === 'Symbol(react.forward_ref)' || typeString === 'Symbol(react.element)' || typeString === 'Symbol(react.transitional.element)');
+  if (isValidType && ${propsIdentifier}) {
+    const hasFSAttribute = !!(${propsIdentifier}.fsClass || ${propsIdentifier}.fsAttribute || ${propsIdentifier}.fsTagName || ${propsIdentifier}.dataElement || ${propsIdentifier}.dataComponent || ${propsIdentifier}.dataSourceFile);
+    if (hasFSAttribute) {
+      if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
+        global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
       }
+      ${setRefBackwardCompat(refIdentifier, propsIdentifier, 'global.__FULLSTORY_BABEL_PLUGIN_module')}
     }
-  } 
+  }
 }`;
 
 // This is the code that we will generate for Pressability.
