@@ -30,50 +30,33 @@ function q(c, a, g) {
   void 0 !== a.ref && (h = a.ref);
   for (b in a) m.call(a, b) && !p.hasOwnProperty(b) && (d[b] = a[b]);
   if (c && c.defaultProps) for (b in ((a = c.defaultProps), a)) void 0 === d[b] && (d[b] = a[b]);
-  const { Platform } = require('react-native');
-  function isReact19Plus() {
-    const { version } = require('react');
-    try {
-      if (version) {
-        const majorVersion = parseInt(version.split('.')[0], 10);
-        return majorVersion >= 19;
-      }
-    } catch {}
-    // fallback to React 18
-    return false;
+  if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef === undefined) {
+    const { Platform } = require('react-native');
+    global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef =
+      (global.RN$Bridgeless || global.__turboModuleProxy != null) && Platform.OS === 'ios';
   }
-  const SUPPORTED_FS_ATTRIBUTES = [
-    'fsClass',
-    'fsAttribute',
-    'fsTagName',
-    'dataElement',
-    'dataComponent',
-    'dataSourceFile',
-  ];
-  const isTurboModuleEnabled = global.RN$Bridgeless || global.__turboModuleProxy != null;
-  if (isTurboModuleEnabled && Platform.OS === 'ios') {
-    if (
-      isReact19Plus() ||
-      (c.$$typeof &&
-        (c.$$typeof.toString() === 'Symbol(react.forward_ref)' ||
-          c.$$typeof.toString() === 'Symbol(react.element)' ||
-          c.$$typeof.toString() === 'Symbol(react.transitional.element)'))
-    ) {
-      if (d) {
-        const propContainsFSAttribute = SUPPORTED_FS_ATTRIBUTES.some(fsAttribute => {
-          if (!!d[fsAttribute]) {
-            if (fsAttribute === 'fsAttribute') {
-              return typeof d[fsAttribute] === 'object';
-            } else {
-              return typeof d[fsAttribute] === 'string';
-            }
-          }
-          return false;
-        });
-        if (propContainsFSAttribute) {
-          const fs = require('@fullstory/react-native');
-          h = fs.applyFSPropertiesWithRef(h);
+  if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
+    const typeSymbol = c.$$typeof;
+    const typeString = typeSymbol ? typeSymbol.toString() : '';
+    const isValidType =
+      false ||
+      typeString === 'Symbol(react.forward_ref)' ||
+      typeString === 'Symbol(react.element)' ||
+      typeString === 'Symbol(react.transitional.element)';
+    if (isValidType && d) {
+      const hasFSAttribute = !!(
+        d.fsClass ||
+        d.fsAttribute ||
+        d.fsTagName ||
+        d.dataElement ||
+        d.dataComponent ||
+        d.dataSourceFile
+      );
+      if (hasFSAttribute) {
+        if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
+          global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
         }
+        h = global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(h);
       }
     }
   }
