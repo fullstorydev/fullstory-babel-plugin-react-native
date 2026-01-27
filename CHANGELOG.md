@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0
+
+Enhanced performance of attribute detection on iOS.
+
 ## 1.5.2
 
 Fixed a bug where `refs` lose their associated methods, causing no-ops in `TextInput` `refs`.
