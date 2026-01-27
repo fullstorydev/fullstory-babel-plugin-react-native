@@ -27,7 +27,7 @@ const setRefBackwardCompat = (refIdentifier, propsIdentifier, moduleRef) => {
 const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
 if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef === undefined) {
   const { Platform } = require('react-native');
-  global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef = (global.RN$Bridgeless || global.__turboModuleProxy != null) && Platform.OS === 'ios';
+  global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef = (global.RN$Bridgeless || global.__turboModuleProxy != null) && Platform.OS === 'ios' && !Platform.isTV;
 }
 if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
   const typeSymbol = ${typeIdentifier}.$$typeof;
@@ -39,7 +39,11 @@ if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
       if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
         global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
       }
-      ${setRefBackwardCompat(refIdentifier, propsIdentifier, 'global.__FULLSTORY_BABEL_PLUGIN_module')}
+      ${setRefBackwardCompat(
+        refIdentifier,
+        propsIdentifier,
+        'global.__FULLSTORY_BABEL_PLUGIN_module',
+      )}
     }
   }
 }`;
