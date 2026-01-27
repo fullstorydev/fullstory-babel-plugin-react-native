@@ -809,7 +809,9 @@ if (process.env.NODE_ENV !== 'production') {
       if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef === undefined) {
         const { Platform } = require('react-native');
         global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef =
-          (global.RN$Bridgeless || global.__turboModuleProxy != null) && Platform.OS === 'ios';
+          (global.RN$Bridgeless || global.__turboModuleProxy != null) &&
+          Platform.OS === 'ios' &&
+          !Platform.isTV;
       }
       if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
         const typeSymbol = type.$$typeof;
