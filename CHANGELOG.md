@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1
+
+Fixed a bug where fullstory attribute changes on rerenders were ignored.
+Omit babel rewrites on TV OS.
+
 ## 1.6.0
 
 Enhanced performance of attribute detection on iOS.
