@@ -14,13 +14,13 @@ const IS_REACT_19_PLUS = (() => {
   return false;
 })();
 
-const setRefBackwardCompat = (refIdentifier, propsIdentifier, moduleRef) => {
+const setRefBackwardCompat = (refIdentifier, propsIdentifier, moduleRef, hasDynamicAttribute) => {
   if (refIdentifier) {
     // React versions < 19
-    return `${refIdentifier} = ${moduleRef}.applyFSPropertiesWithRef(${refIdentifier});`;
+    return `${refIdentifier} = ${moduleRef}.applyFSPropertiesWithRef(${refIdentifier}, ${hasDynamicAttribute});`;
   }
   // React versions >= 19
-  return `${propsIdentifier} = { ...${propsIdentifier}, ...(!${propsIdentifier}['ref'] && ${propsIdentifier}['forwardedRef'] ? {} : { ref: ${moduleRef}.applyFSPropertiesWithRef(${propsIdentifier}['ref']) }) }`;
+  return `${propsIdentifier} = { ...${propsIdentifier}, ...(!${propsIdentifier}['ref'] && ${propsIdentifier}['forwardedRef'] ? {} : { ref: ${moduleRef}.applyFSPropertiesWithRef(${propsIdentifier}['ref'], ${hasDynamicAttribute}) }) }`;
 };
 
 // We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
@@ -34,7 +34,9 @@ if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
   const typeString = typeSymbol ? typeSymbol.toString() : '';
   const isValidType = ${IS_REACT_19_PLUS} || (typeString === 'Symbol(react.forward_ref)' || typeString === 'Symbol(react.element)' || typeString === 'Symbol(react.transitional.element)');
   if (isValidType && ${propsIdentifier}) {
-    const hasFSAttribute = !!(${propsIdentifier}.fsClass || ${propsIdentifier}.fsAttribute || ${propsIdentifier}.fsTagName || ${propsIdentifier}.dataElement || ${propsIdentifier}.dataComponent || ${propsIdentifier}.dataSourceFile);
+    const hasFSDynamicAttribute = !!(${propsIdentifier}.fsClass || ${propsIdentifier}.fsAttribute || ${propsIdentifier}.fsTagName);
+    const hasFSStaticAttribute = !!(${propsIdentifier}.dataElement || ${propsIdentifier}.dataComponent || ${propsIdentifier}.dataSourceFile);
+    const hasFSAttribute = hasFSDynamicAttribute || hasFSStaticAttribute;
     if (hasFSAttribute) {
       if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
         global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
@@ -43,6 +45,7 @@ if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
         refIdentifier,
         propsIdentifier,
         'global.__FULLSTORY_BABEL_PLUGIN_module',
+        'hasFSDynamicAttribute',
       )}
     }
   }
