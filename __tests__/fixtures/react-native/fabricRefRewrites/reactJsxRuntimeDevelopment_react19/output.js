@@ -389,14 +389,13 @@
           typeString === 'Symbol(react.element)' ||
           typeString === 'Symbol(react.transitional.element)';
         if (isValidType && props) {
-          const hasFSAttribute = !!(
-            props.fsClass ||
-            props.fsAttribute ||
-            props.fsTagName ||
+          const hasFSDynamicAttribute = !!(props.fsClass || props.fsAttribute || props.fsTagName);
+          const hasFSStaticAttribute = !!(
             props.dataElement ||
             props.dataComponent ||
             props.dataSourceFile
           );
+          const hasFSAttribute = hasFSDynamicAttribute || hasFSStaticAttribute;
           if (hasFSAttribute) {
             if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
               global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
@@ -408,6 +407,7 @@
                 : {
                     ref: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
                       props['ref'],
+                      hasFSDynamicAttribute,
                     ),
                   }),
             };

@@ -107,19 +107,17 @@ function M(a, b, e) {
       typeString === 'Symbol(react.element)' ||
       typeString === 'Symbol(react.transitional.element)';
     if (isValidType && c) {
-      const hasFSAttribute = !!(
-        c.fsClass ||
-        c.fsAttribute ||
-        c.fsTagName ||
-        c.dataElement ||
-        c.dataComponent ||
-        c.dataSourceFile
-      );
+      const hasFSDynamicAttribute = !!(c.fsClass || c.fsAttribute || c.fsTagName);
+      const hasFSStaticAttribute = !!(c.dataElement || c.dataComponent || c.dataSourceFile);
+      const hasFSAttribute = hasFSDynamicAttribute || hasFSStaticAttribute;
       if (hasFSAttribute) {
         if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
           global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
         }
-        h = global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(h);
+        h = global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
+          h,
+          hasFSDynamicAttribute,
+        );
       }
     }
   }
@@ -338,19 +336,17 @@ exports.cloneElement = function (a, b, e) {
       typeString === 'Symbol(react.element)' ||
       typeString === 'Symbol(react.transitional.element)';
     if (isValidType && d) {
-      const hasFSAttribute = !!(
-        d.fsClass ||
-        d.fsAttribute ||
-        d.fsTagName ||
-        d.dataElement ||
-        d.dataComponent ||
-        d.dataSourceFile
-      );
+      const hasFSDynamicAttribute = !!(d.fsClass || d.fsAttribute || d.fsTagName);
+      const hasFSStaticAttribute = !!(d.dataElement || d.dataComponent || d.dataSourceFile);
+      const hasFSAttribute = hasFSDynamicAttribute || hasFSStaticAttribute;
       if (hasFSAttribute) {
         if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
           global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
         }
-        k = global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(k);
+        k = global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
+          k,
+          hasFSDynamicAttribute,
+        );
       }
     }
   }
