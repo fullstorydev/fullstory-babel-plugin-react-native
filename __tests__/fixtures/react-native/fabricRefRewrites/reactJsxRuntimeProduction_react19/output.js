@@ -37,14 +37,17 @@ function jsxProd(type, config, maybeKey) {
       typeString === 'Symbol(react.element)' ||
       typeString === 'Symbol(react.transitional.element)';
     if (isValidType && maybeKey) {
-      const hasFSAttribute = !!(
+      const hasFSDynamicAttribute = !!(
         maybeKey.fsClass ||
         maybeKey.fsAttribute ||
-        maybeKey.fsTagName ||
+        maybeKey.fsTagName
+      );
+      const hasFSStaticAttribute = !!(
         maybeKey.dataElement ||
         maybeKey.dataComponent ||
         maybeKey.dataSourceFile
       );
+      const hasFSAttribute = hasFSDynamicAttribute || hasFSStaticAttribute;
       if (hasFSAttribute) {
         if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
           global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
@@ -56,6 +59,7 @@ function jsxProd(type, config, maybeKey) {
             : {
                 ref: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
                   maybeKey['ref'],
+                  hasFSDynamicAttribute,
                 ),
               }),
         };
