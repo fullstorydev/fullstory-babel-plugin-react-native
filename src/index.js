@@ -20,7 +20,7 @@ const setRefBackwardCompat = (refIdentifier, propsIdentifier, moduleRef, hasDyna
     return `${refIdentifier} = ${moduleRef}.applyFSPropertiesWithRef(${refIdentifier}, ${hasDynamicAttribute});`;
   }
   // React versions >= 19
-  return `${propsIdentifier} = { ...${propsIdentifier}, ...(!${propsIdentifier}['ref'] && ${propsIdentifier}['forwardedRef'] ? {} : { ref: ${moduleRef}.applyFSPropertiesWithRef(${propsIdentifier}['ref'], ${hasDynamicAttribute}) }) }`;
+  return `${propsIdentifier} = { ...${propsIdentifier}, ...(${propsIdentifier}['ref'] ? { ref: ${moduleRef}.applyFSPropertiesWithRef(${propsIdentifier}['ref'], ${hasDynamicAttribute}) } : {}) }`;
 };
 
 // We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
