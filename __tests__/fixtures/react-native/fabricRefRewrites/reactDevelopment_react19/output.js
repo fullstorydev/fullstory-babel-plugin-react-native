@@ -468,14 +468,14 @@
             }
             props = {
               ...props,
-              ...(!props['ref'] && props['forwardedRef']
-                ? {}
-                : {
+              ...(props['ref']
+                ? {
                     ref: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
                       props['ref'],
                       hasFSDynamicAttribute,
                     ),
-                  }),
+                  }
+                : {}),
             };
           }
         }

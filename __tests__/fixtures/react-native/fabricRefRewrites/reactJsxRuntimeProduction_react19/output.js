@@ -54,14 +54,14 @@ function jsxProd(type, config, maybeKey) {
         }
         maybeKey = {
           ...maybeKey,
-          ...(!maybeKey['ref'] && maybeKey['forwardedRef']
-            ? {}
-            : {
+          ...(maybeKey['ref']
+            ? {
                 ref: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
                   maybeKey['ref'],
                   hasFSDynamicAttribute,
                 ),
-              }),
+              }
+            : {}),
         };
       }
     }
