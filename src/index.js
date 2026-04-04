@@ -664,9 +664,10 @@ export default function ({ types: t }) {
         }
 
         // check if view optimization is already disabled
+        // Note: testID is intentionally excluded here. testID prevents the view itself
+        // from being removed, but does NOT prevent view flattening.
         const isViewOptimizationDisabled = path.container.some(attribute => {
           return (
-            t.isJSXIdentifier(attribute.name, { name: 'testID' }) ||
             t.isJSXIdentifier(attribute.name, { name: 'id' }) ||
             t.isJSXIdentifier(attribute.name, { name: 'nativeID' })
           );
