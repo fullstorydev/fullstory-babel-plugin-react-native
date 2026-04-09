@@ -15,7 +15,8 @@
   ],
   "main": "lib/index.js",
   "files": [
-    "lib"
+    "lib",
+    "src/index.js"
   ],
   "scripts": {
     "clean": "rm -rf lib",
