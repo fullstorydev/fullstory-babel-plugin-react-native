@@ -15,11 +15,9 @@
   ],
   "main": "lib/index.js",
   "files": [
-    "lib",
-    "src/index.js"
+    "lib"
   ],
   "scripts": {
-    "prepare": "npm run build",
     "clean": "rm -rf lib",
     "build": "babel src -d lib",
     "lint": "eslint ./src",

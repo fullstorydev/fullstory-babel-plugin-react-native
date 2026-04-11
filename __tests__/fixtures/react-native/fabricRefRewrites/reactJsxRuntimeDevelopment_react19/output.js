@@ -400,13 +400,9 @@
             if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
               global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
             }
-            if (props['ref']) {
+            if (!props['ref'] && props['forwardedRef']) {
               props = {
                 ...props,
-                ref: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
-                  props['ref'],
-                  hasFSDynamicAttribute,
-                ),
               };
             } else {
               props = Object.defineProperty(

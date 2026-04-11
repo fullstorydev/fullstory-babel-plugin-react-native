@@ -52,13 +52,9 @@ function jsxProd(type, config, maybeKey) {
         if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
           global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
         }
-        if (maybeKey['ref']) {
+        if (!maybeKey['ref'] && maybeKey['forwardedRef']) {
           maybeKey = {
             ...maybeKey,
-            ref: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
-              maybeKey['ref'],
-              hasFSDynamicAttribute,
-            ),
           };
         } else {
           maybeKey = Object.defineProperty(

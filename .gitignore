@@ -41,4 +41,4 @@ dist
 .vscode
 
 # generated code
-# lib — temporarily tracked for GitHub-based installs
+lib
