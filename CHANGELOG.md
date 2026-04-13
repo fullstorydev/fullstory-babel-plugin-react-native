@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.3
+
+- React 19: define injected `ref` as non-enumerable so it is omitted from `{...rest}` spreads.
+
 ## 1.6.2
 
 - Fixed a bug where testID caused Fullstory attributes to be ignored due to view flattening.
