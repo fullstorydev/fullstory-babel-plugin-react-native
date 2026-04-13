@@ -52,17 +52,26 @@ function jsxProd(type, config, maybeKey) {
         if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
           global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
         }
-        maybeKey = {
-          ...maybeKey,
-          ...(!maybeKey['ref'] && maybeKey['forwardedRef']
-            ? {}
-            : {
-                ref: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
-                  maybeKey['ref'],
-                  hasFSDynamicAttribute,
-                ),
-              }),
-        };
+        if (!maybeKey['ref'] && maybeKey['forwardedRef']) {
+          maybeKey = {
+            ...maybeKey,
+          };
+        } else {
+          maybeKey = Object.defineProperty(
+            {
+              ...maybeKey,
+            },
+            'ref',
+            {
+              value: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
+                maybeKey['ref'],
+                hasFSDynamicAttribute,
+              ),
+              enumerable: false,
+              configurable: true,
+            },
+          );
+        }
       }
     }
   }

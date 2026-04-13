@@ -466,17 +466,26 @@
             if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
               global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
             }
-            props = {
-              ...props,
-              ...(!props['ref'] && props['forwardedRef']
-                ? {}
-                : {
-                    ref: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
-                      props['ref'],
-                      hasFSDynamicAttribute,
-                    ),
-                  }),
-            };
+            if (!props['ref'] && props['forwardedRef']) {
+              props = {
+                ...props,
+              };
+            } else {
+              props = Object.defineProperty(
+                {
+                  ...props,
+                },
+                'ref',
+                {
+                  value: global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesWithRef(
+                    props['ref'],
+                    hasFSDynamicAttribute,
+                  ),
+                  enumerable: false,
+                  configurable: true,
+                },
+              );
+            }
           }
         }
       }
