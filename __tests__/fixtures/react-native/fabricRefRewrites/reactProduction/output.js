@@ -102,7 +102,7 @@ function M(a, b, e) {
     const typeSymbol = a.$$typeof;
     const typeString = typeSymbol ? typeSymbol.toString() : '';
     const isValidType =
-      false ||
+      true ||
       typeString === 'Symbol(react.forward_ref)' ||
       typeString === 'Symbol(react.element)' ||
       typeString === 'Symbol(react.transitional.element)';
@@ -331,7 +331,7 @@ exports.cloneElement = function (a, b, e) {
     const typeSymbol = a.$$typeof;
     const typeString = typeSymbol ? typeSymbol.toString() : '';
     const isValidType =
-      false ||
+      true ||
       typeString === 'Symbol(react.forward_ref)' ||
       typeString === 'Symbol(react.element)' ||
       typeString === 'Symbol(react.transitional.element)';

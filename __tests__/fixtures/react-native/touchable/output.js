@@ -934,7 +934,6 @@ const Touchable = {
     );
   },
 };
-
 const styles = StyleSheet.create({
   debug: {
     position: 'absolute',
