@@ -89,7 +89,7 @@ function ReactElement(type, key, self, source, owner, props) {
       !Platform.isTV;
   }
   if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
-    const typeSymbol = type.$$typeof;
+    const typeSymbol = type != null ? type.$$typeof : undefined;
     const typeString = typeSymbol ? typeSymbol.toString() : '';
     const isValidType =
       true ||

@@ -74,4 +74,18 @@ describe('ref injection on iOS new-arch', () => {
       });
     }
   });
+
+  it('does not throw when cloneElement runs with a typeless element (type != null guard before type.$$typeof)', () => {
+    // React.cloneElement forwards element.type into ReactElement(); a malformed
+    // "element" with no `type` passes undefined. The plugin injects fabric ref
+    // logic that must use `type != null ? type.$$typeof : undefined` — otherwise
+    // accessing type.$$typeof throws (matches NonJsxElements manual repro).
+    const fakeElement = { dummy: true, children: [], props: {} };
+
+    expect(() => {
+      React.cloneElement(fakeElement, { key: 0 });
+    }).not.toThrow();
+
+    expect(global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef).toBe(true);
+  });
 });
