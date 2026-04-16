@@ -498,7 +498,6 @@ if (process.env.NODE_ENV !== 'production') {
         }
       }
     }
-
     function getWrappedName(outerType, innerType, wrapperName) {
       var displayName = outerType.displayName;
       if (displayName) {
@@ -575,7 +574,6 @@ if (process.env.NODE_ENV !== 'production') {
           // eslint-disable-next-line no-fallthrough
         }
       }
-
       return null;
     }
     var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -711,7 +709,7 @@ if (process.env.NODE_ENV !== 'production') {
         const typeSymbol = type.$$typeof;
         const typeString = typeSymbol ? typeSymbol.toString() : '';
         const isValidType =
-          false ||
+          true ||
           typeString === 'Symbol(react.forward_ref)' ||
           typeString === 'Symbol(react.element)' ||
           typeString === 'Symbol(react.transitional.element)';
@@ -1158,7 +1156,6 @@ if (process.env.NODE_ENV !== 'production') {
       mapChildren(children, function () {
         n++; // Don't return anything
       });
-
       return n;
     }
 
@@ -1753,7 +1750,6 @@ if (process.env.NODE_ENV !== 'production') {
           });
           /* eslint-enable react-internal/no-production-logging */
         }
-
         disabledDepth++;
       }
     }
@@ -1793,7 +1789,6 @@ if (process.env.NODE_ENV !== 'production') {
           });
           /* eslint-enable react-internal/no-production-logging */
         }
-
         if (disabledDepth < 0) {
           error(
             'disabledDepth fell below zero. ' + 'This is a bug in React. Please file an issue.',

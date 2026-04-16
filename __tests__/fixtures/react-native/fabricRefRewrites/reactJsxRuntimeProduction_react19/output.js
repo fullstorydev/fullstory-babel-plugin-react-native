@@ -32,7 +32,7 @@ function jsxProd(type, config, maybeKey) {
     const typeSymbol = type.$$typeof;
     const typeString = typeSymbol ? typeSymbol.toString() : '';
     const isValidType =
-      false ||
+      true ||
       typeString === 'Symbol(react.forward_ref)' ||
       typeString === 'Symbol(react.element)' ||
       typeString === 'Symbol(react.transitional.element)';
