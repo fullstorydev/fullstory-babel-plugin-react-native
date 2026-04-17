@@ -74,4 +74,16 @@ describe('ref injection on iOS new-arch', () => {
       });
     }
   });
+
+  it('does not throw when cloneElement runs with a typeless element', () => {
+    // React.cloneElement forwards element.type into ReactElement(); a malformed
+    // "element" with no `type` passes undefined.
+    const fakeElement = { dummy: true, children: [], props: {} };
+
+    expect(() => {
+      React.cloneElement(fakeElement, { key: 0 });
+    }).not.toThrow();
+
+    expect(global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef).toBe(true);
+  });
 });

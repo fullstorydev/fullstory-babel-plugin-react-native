@@ -42,7 +42,7 @@ if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef === undefined) {
   global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef = (global.RN$Bridgeless || global.__turboModuleProxy != null) && Platform.OS === 'ios' && !Platform.isTV;
 }
 if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
-  const typeSymbol = ${typeIdentifier}.$$typeof;
+  const typeSymbol = ${typeIdentifier} != null ? ${typeIdentifier}.$$typeof : undefined;
   const typeString = typeSymbol ? typeSymbol.toString() : '';
   const isValidType = ${IS_REACT_19_PLUS} || (typeString === 'Symbol(react.forward_ref)' || typeString === 'Symbol(react.element)' || typeString === 'Symbol(react.transitional.element)');
   if (isValidType && ${propsIdentifier}) {

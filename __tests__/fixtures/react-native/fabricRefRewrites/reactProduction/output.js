@@ -99,7 +99,7 @@ function M(a, b, e) {
       !Platform.isTV;
   }
   if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
-    const typeSymbol = a.$$typeof;
+    const typeSymbol = a != null ? a.$$typeof : undefined;
     const typeString = typeSymbol ? typeSymbol.toString() : '';
     const isValidType =
       true ||
@@ -328,7 +328,7 @@ exports.cloneElement = function (a, b, e) {
       !Platform.isTV;
   }
   if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
-    const typeSymbol = a.$$typeof;
+    const typeSymbol = a != null ? a.$$typeof : undefined;
     const typeString = typeSymbol ? typeSymbol.toString() : '';
     const isValidType =
       true ||
