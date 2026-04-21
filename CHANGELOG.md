@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.4
+
+- Fixed a bug where a component with an undefined `type` causes a runtime exception.
+
 ## 1.6.3
 
 - React 19: define injected `ref` as non-enumerable so it is omitted from `{...rest}` spreads.
