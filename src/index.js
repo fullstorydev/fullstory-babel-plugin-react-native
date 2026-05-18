@@ -19,7 +19,7 @@ const setRefBackwardCompat = (refIdentifier, propsIdentifier, moduleRef, hasDyna
     // React versions < 19
     return `${refIdentifier} = ${moduleRef}.applyFSPropertiesWithRef(${refIdentifier}, ${hasDynamicAttribute});`;
   }
-  // React versions >= 19 — synthetic refs are non-enumerable to prevent leaking through {...rest} spreads
+  // React versions >= 19 — synthetic ref must remain enumerable so it propagates
   return `if (!${propsIdentifier}['ref'] && ${propsIdentifier}['forwardedRef']) {
     ${propsIdentifier} = { ...${propsIdentifier} };
   } else {
@@ -28,7 +28,7 @@ const setRefBackwardCompat = (refIdentifier, propsIdentifier, moduleRef, hasDyna
       'ref',
       {
         value: ${moduleRef}.applyFSPropertiesWithRef(${propsIdentifier}['ref'], ${hasDynamicAttribute}),
-        enumerable: false,
+        enumerable: true,
         configurable: true,
       }
     );

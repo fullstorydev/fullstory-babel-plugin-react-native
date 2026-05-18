@@ -415,7 +415,7 @@
                     props['ref'],
                     hasFSDynamicAttribute,
                   ),
-                  enumerable: false,
+                  enumerable: true,
                   configurable: true,
                 },
               );

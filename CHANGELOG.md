@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- React 19: revert synthetic `ref` injection to enumerable so it propagates through `{...props}` spreads used by `Animated.createAnimatedComponent` and similar ref-forwarding HOCs. Non-enumerable refs (introduced in 1.6.3) silently dropped through these HOCs and broke downstream scroll-lifecycle callbacks on iOS new architecture. Consumers who want to prevent the synthetic ref from leaking through `{...rest}` can destructure `ref` explicitly.
+
 ## 1.6.4
 
 - Fixed a bug where a component with an undefined `type` causes a runtime exception.
