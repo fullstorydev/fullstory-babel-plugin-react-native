@@ -2,7 +2,7 @@
   "name": "@fullstory/babel-plugin-react-native",
   "version": "1.6.4",
   "description": "The official FullStory React Native babel plugin",
-  "repository": "git://github.com/fullstorydev/fullstory-babel-plugin-react-native.git",
+  "repository": "git+https://github.com/fullstorydev/fullstory-babel-plugin-react-native.git",
   "homepage": "https://github.com/fullstorydev/fullstory-babel-plugin-react-native",
   "author": "FullStory",
   "license": "MIT",
