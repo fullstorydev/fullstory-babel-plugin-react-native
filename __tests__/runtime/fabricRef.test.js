@@ -35,19 +35,42 @@ describe('ref injection on iOS new-arch', () => {
     });
   });
 
-  it('injected ref on a custom component is non-enumerable and does not appear in {...rest} spreads', () => {
-    // Regression test for: when a custom (non-host) component receives FS attributes,
-    // the babel plugin injects a `ref` into its props object. In React 19 props are
-    // plain objects, so a regular enumerable `ref` would leak into `{...rest}` spreads
-    // and be passed down to host components that don't accept it, breaking the tree.
-    // The fix defines the injected `ref` as non-enumerable so it is invisible to spreads.
+  it('injected ref propagates through {...props} spread to forwarded child components', () => {
+    // Regression test for: HOCs that intentionally forward refs to a single
+    // inner component via `{...props}` spread (notably Reanimated's
+    // `Animated.createAnimatedComponent`) must see the synthetic ref. Defining
+    // it as non-enumerable would silently drop the ref into those HOCs and
+    // break downstream scroll-lifecycle callbacks and other ref-dependent
+    // behavior on iOS new arch + React 19.
+    //
+    // Trade-off: consumers who use the `const { ref, ...rest } = props; <Child {...rest} />`
+    // pattern can opt out by destructuring `ref` explicitly. See the
+    // sibling test below.
+    const childRef = React.createRef();
+
+    const HOCComponent = props => {
+      // Forwarding pattern used by Animated.createAnimatedComponent and many
+      // ref-forwarding HOCs: spread everything (including the synthetic ref)
+      // to a single inner host component.
+      return <View {...props} />;
+    };
+
+    render(<HOCComponent fsClass="hoc-class" ref={childRef} />);
+
+    expect(childRef.current).not.toBeNull();
+    expect(childRef.current?._reactInternals?.type).toBe(View);
+  });
+
+  it('consumers can opt out of synthetic-ref propagation by destructuring `ref`', () => {
+    // Consumers that wrap a host component and don't want the synthetic ref
+    // (or any other unknown ref) to reach the host can destructure it out
+    // before spreading the remainder.
     const childRef = React.createRef();
 
     const CustomComponent = props => {
-      const { fsClass: _fsClass, ...rest } = props;
-      // If `ref` were enumerable it would end up in `rest` and be forwarded to
-      // the inner <View>, overriding childRef and causing childRef.current to
-      // remain null (or point to the wrong node).
+      // Explicitly destructure both `ref` and `fsClass` out of props so they
+      // don't leak into `rest`.
+      const { ref: _ref, fsClass: _fsClass, ...rest } = props;
       return <View ref={childRef} {...rest} />;
     };
 

@@ -67,7 +67,7 @@ function jsxProd(type, config, maybeKey) {
                 maybeKey['ref'],
                 hasFSDynamicAttribute,
               ),
-              enumerable: false,
+              enumerable: true,
               configurable: true,
             },
           );

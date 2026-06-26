@@ -123,7 +123,7 @@ function ReactElement(type, key, self, source, owner, props) {
                 props['ref'],
                 hasFSDynamicAttribute,
               ),
-              enumerable: false,
+              enumerable: true,
               configurable: true,
             },
           );
