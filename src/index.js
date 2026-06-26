@@ -1,67 +1,93 @@
 import * as babylon from '@babel/parser';
 import * as t from '@babel/types';
 
-// Compute React version ONCE at build time (when Babel plugin loads)
-const IS_REACT_19_PLUS = (() => {
-  try {
-    const { version } = require('react');
-    if (version) {
-      const majorVersion = parseInt(version.split('.')[0], 10);
-      return majorVersion >= 19;
-    }
-  } catch {}
-  // fallback to React 18
-  return false;
-})();
-
-const setRefBackwardCompat = (refIdentifier, propsIdentifier, moduleRef, hasDynamicAttribute) => {
-  if (refIdentifier) {
-    // React versions < 19
-    return `${refIdentifier} = ${moduleRef}.applyFSPropertiesWithRef(${refIdentifier}, ${hasDynamicAttribute});`;
-  }
-  // React versions >= 19 — synthetic refs are non-enumerable to prevent leaking through {...rest} spreads
-  return `if (!${propsIdentifier}['ref'] && ${propsIdentifier}['forwardedRef']) {
-    ${propsIdentifier} = { ...${propsIdentifier} };
-  } else {
-    ${propsIdentifier} = Object.defineProperty(
-      { ...${propsIdentifier} },
-      'ref',
-      {
-        value: ${moduleRef}.applyFSPropertiesWithRef(${propsIdentifier}['ref'], ${hasDynamicAttribute}),
-        enumerable: false,
-        configurable: true,
-      }
-    );
-  }`;
-};
-
-// We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
-const _createFabricRefCode = (refIdentifier, typeIdentifier, propsIdentifier) => `
-if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef === undefined) {
+/*
+ * FS Fabric commit-phase instrumentation.
+ *
+ * Injected at the END of `commitMutationEffectsOnFiber` inside the bundled
+ * ReactFabric renderer files (ReactFabric-dev.js / -prod.js / -profiling.js).
+ *
+ * Two coordinated halves run inside the same block:
+ *
+ *   COLLECT (when finishedWork.tag === 5 / HostComponent):
+ *     Push the fiber onto a global pending list if its memoizedProps carry any
+ *     FS attribute (fsClass / fsAttribute / fsTagName / data{Element,Component,
+ *     SourceFile}).
+ *
+ *   DRAIN (when finishedWork.tag === 3 / HostRoot):
+ *     Walk the pending list and forward each fiber's public instance + props
+ *     to `applyFSPropertiesToInstance` on the SDK, which dispatches a single
+ *     batched native command.
+ *
+ * Why split it this way:
+ *   - Fabric is persistent mode. `commitMutationEffectsOnFiber` for HostRoot's
+ *     case 3 arm calls `replaceContainerChildren` AFTER it recurses into all
+ *     children. `replaceContainerChildren` is what synchronously ships the
+ *     shadow tree to native; only after it returns do the underlying native
+ *     views exist (or get queued for mount on the native side in command
+ *     order).
+ *   - If we instead dispatched during the tag-5 traversal (which happens
+ *     BEFORE the root's `replaceContainerChildren`), the command would target
+ *     nativeTags whose backing views have not been mounted yet.
+ *
+ * `getPublicInstance` is a top-level function in the same Fabric module scope,
+ * so the injected code can call it directly to resolve a fiber's public
+ * instance without needing a ref.
+ */
+const _commitMutationEffectsFSPropertiesCode = `
+if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectFSCommitHook === undefined) {
   const { Platform } = require('react-native');
-  global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef = (global.RN$Bridgeless || global.__turboModuleProxy != null) && Platform.OS === 'ios' && !Platform.isTV;
+  global.__FULLSTORY_BABEL_PLUGIN_shouldInjectFSCommitHook =
+    (global.RN$Bridgeless || global.__turboModuleProxy != null) &&
+    Platform.OS === 'ios' &&
+    !Platform.isTV;
 }
-if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectRef) {
-  const typeSymbol = ${typeIdentifier} != null ? ${typeIdentifier}.$$typeof : undefined;
-  const typeString = typeSymbol ? typeSymbol.toString() : '';
-  const isValidType = ${IS_REACT_19_PLUS} || (typeString === 'Symbol(react.forward_ref)' || typeString === 'Symbol(react.element)' || typeString === 'Symbol(react.transitional.element)');
-  if (isValidType && ${propsIdentifier}) {
-    const hasFSDynamicAttribute = !!(${propsIdentifier}.fsClass || ${propsIdentifier}.fsAttribute || ${propsIdentifier}.fsTagName);
-    const hasFSStaticAttribute = !!(${propsIdentifier}.dataElement || ${propsIdentifier}.dataComponent || ${propsIdentifier}.dataSourceFile);
-    const hasFSAttribute = hasFSDynamicAttribute || hasFSStaticAttribute;
-    if (hasFSAttribute) {
+if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectFSCommitHook) {
+  if (finishedWork.tag === 5) {
+    // Collect host fibers with FS attributes.
+    // ReactWorkTags.HostComponent === 5 — the only fiber tag in React Native
+    // whose stateNode is a Fabric ShadowNode resolvable via getPublicInstance.
+    var __fsProps = finishedWork.memoizedProps;
+    if (
+      __fsProps != null &&
+      (__fsProps.fsClass ||
+        __fsProps.fsAttribute ||
+        __fsProps.fsTagName ||
+        __fsProps.dataElement ||
+        __fsProps.dataComponent ||
+        __fsProps.dataSourceFile)
+    ) {
+      (
+        global.__FULLSTORY_FS_PENDING_HOSTS ||
+        (global.__FULLSTORY_FS_PENDING_HOSTS = [])
+      ).push(finishedWork);
+    }
+  } else if (finishedWork.tag === 3) {
+    // Drain on HostRoot — replaceContainerChildren has now committed the
+    // shadow tree to native, so setBatchProperties commands will land on
+    // (or be queued behind) real native views.
+    var __fsPending = global.__FULLSTORY_FS_PENDING_HOSTS;
+    if (__fsPending && __fsPending.length) {
+      global.__FULLSTORY_FS_PENDING_HOSTS = [];
       if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
         global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
       }
-      ${setRefBackwardCompat(
-        refIdentifier,
-        propsIdentifier,
-        'global.__FULLSTORY_BABEL_PLUGIN_module',
-        'hasFSDynamicAttribute',
-      )}
+      for (var __fsI = 0; __fsI < __fsPending.length; __fsI++) {
+        try {
+          var __fsFiber = __fsPending[__fsI];
+          var __fsStateNode = __fsFiber.stateNode;
+          if (__fsStateNode != null) {
+            global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesToInstance(
+              getPublicInstance(__fsStateNode),
+              __fsFiber.memoizedProps
+            );
+          }
+        } catch (e) {}
+      }
     }
   }
-}`;
+}
+`;
 
 // This is the code that we will generate for Pressability.
 // Note that `typeof UIManager` will cause an exception, so we use a try/catch.
@@ -468,84 +494,46 @@ function fixTouchableMixin(t, path) {
   });
 }
 
-function extendReactElementWithRef(path) {
-  /* We look in React for when it creates a ReactElement.
-   * https://github.com/facebook/react/blob/b2f6365745416be4d7dad7799a2cfbfbbf425389/packages/react/src/jsx/ReactJSXElement.js#L176
-
-   * We identify this by looking for the $$typeof property set on an object and
-   * where $$typeof is set to Symbol.for('react.element') or Symbol.for('react.transitional.element')
-   * 
-   * This is the structure of the element object in React:
-   *   const element = {
-   *     $$typeof: REACT_ELEMENT_TYPE,
-   *     type: type,
-   *     key: key,
-   *     ref: ref, // this does not exist in React >=19
-   *     props: props, // props.ref has the ref in React >=19
-   *     _owner: owner,
-   */
-
-  // Are we actually looking at the ref: in there, and does it refer to a single variable?
-  if (path.node.key.name !== '$$typeof' || !t.isIdentifier(path.node.value)) {
+/*
+ * Locate `function commitMutationEffectsOnFiber(finishedWork, root) { ... }`
+ * inside a ReactFabric renderer file and append the FS commit-phase tracking
+ * code at the END of the function body.
+ *
+ * End-of-function placement is intentional. The hook needs to run AFTER the
+ * function's switch statement so that, for HostRoot (tag 3), the case-3 arm
+ * has already called `replaceContainerChildren` and committed the shadow tree
+ * to the native side. By that point our drain-pending logic can safely call
+ * `setBatchProperties` against view tags that exist on (or are queued for) the
+ * native mount layer.
+ *
+ * The function name is stable across React's dev and prod renderer builds
+ * (verified in ReactFabric-dev.js, ReactFabric-prod.js, and
+ * ReactFabric-profiling.js shipped with react-native), so we can match by
+ * identifier rather than structural heuristics.
+ */
+function instrumentReactFabricCommitMutationEffects(path) {
+  if (!path.node.id || path.node.id.name !== 'commitMutationEffectsOnFiber') {
     return;
   }
 
-  // Ensure that the value of $$typeof is a Symbol for 'react.element' or 'react.transitional.element'
-  const typeofDeclPath = path.scope.getBinding(path.node.value.name).path;
-  if (
-    !t.isVariableDeclarator(typeofDeclPath.node) ||
-    !t.isCallExpression(typeofDeclPath.node.init) ||
-    // we could validate typeofDeclPath.node.init.callee to make sure it is 'Symbol.for', but life is too long
-    typeofDeclPath.node.init.arguments.length != 1 ||
-    !t.isStringLiteral(typeofDeclPath.node.init.arguments[0]) ||
-    !(
-      typeofDeclPath.node.init.arguments[0].value === 'react.element' ||
-      typeofDeclPath.node.init.arguments[0].value === 'react.transitional.element'
-    )
-  ) {
+  // The injected code references `finishedWork` (first param) and
+  // `getPublicInstance` (same module scope). Both exist in all ReactFabric
+  // bundles; bail defensively if `finishedWork` was renamed under minification.
+  const firstParam = path.node.params[0];
+  if (!firstParam || !t.isIdentifier(firstParam) || firstParam.name !== 'finishedWork') {
     return;
   }
 
-  // Need to dynamically grab variable names for variables since minified
-  // code will change variable names; this is the lookup for the "var foo"
-  // above.
-  const typeIdentifierNode = path.parentPath.node.properties.find(property => {
-    return t.isObjectProperty(property) && property.key.name === 'type';
-  });
-  const propsIdentifierNode = path.parentPath.node.properties.find(property => {
-    return t.isObjectProperty(property) && property.key.name === 'props';
-  });
+  const commitHookAST = babylon.parse(_commitMutationEffectsFSPropertiesCode);
+  path.get('body').pushContainer('body', commitHookAST.program.body);
+}
 
-  // Doesn't exist in React 19+
-  const refIdentifierNode = path.parentPath.node.properties.find(property => {
-    return t.isObjectProperty(property) && property.key.name === 'ref';
-  });
+const REACT_FABRIC_FILE_RE =
+  /node_modules\/react-native\/Libraries\/Renderer\/implementations\/ReactFabric-(dev|prod|profiling)\.js$/;
 
-  if (!typeIdentifierNode || !propsIdentifierNode) {
-    return;
-  }
-  const typeIdentifierValueIsIdentifier = t.isIdentifier(typeIdentifierNode.value);
-  // variable "type" is a MemberExpression in production code
-  const typeIdentifierValueIsMemberExpression = t.isMemberExpression(typeIdentifierNode.value);
-
-  if (
-    !(typeIdentifierValueIsIdentifier || typeIdentifierValueIsMemberExpression) ||
-    !t.isIdentifier(propsIdentifierNode.value)
-  ) {
-    return;
-  }
-  const typeIdentifier = typeIdentifierValueIsIdentifier
-    ? typeIdentifierNode.value.name
-    : typeIdentifierNode.value.object.name;
-  const propsIdentifier = propsIdentifierNode.value.name;
-  const refIdentifier = refIdentifierNode && refIdentifierNode.value.name;
-
-  // pass props, type, and ref values to the createFabricRefCode for processing
-  // again, these variable identifiers are dynamic due to minification
-  const fabricRefCodeAST = babylon.parse(
-    _createFabricRefCode(refIdentifier, typeIdentifier, propsIdentifier),
-  );
-  path.getStatementParent().insertBefore(fabricRefCodeAST.program.body);
+function isReactFabricRendererFile(filename) {
+  if (!filename) return false;
+  return REACT_FABRIC_FILE_RE.test(filename);
 }
 
 /* eslint-disable complexity */
@@ -564,11 +552,11 @@ export default function ({ types: t }) {
         fixReactNativeViewAttributes(path);
         fixTouchableMixin(t, path);
       },
-      ObjectProperty(path, state) {
-        const reactFilesRegex = /node_modules\/react\/cjs\/.*\.js$/;
-        // only rewrite files in react/cjs directory
-        if (reactFilesRegex.test(state.file.opts.filename)) {
-          extendReactElementWithRef(path);
+      FunctionDeclaration(path, state) {
+        // Instrument the Fabric renderer's commit phase to forward FS props to
+        // the native side.
+        if (isReactFabricRendererFile(state.file.opts.filename)) {
+          instrumentReactFabricCommitMutationEffects(path);
         }
       },
       // React Navigation <7.x screen name support

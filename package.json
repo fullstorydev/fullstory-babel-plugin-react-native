@@ -71,9 +71,6 @@
         "testMatch": [
           "**/__tests__/runtime/**/*.test.js"
         ],
-        "moduleNameMapper": {
-          "^@fullstory/react-native$": "<rootDir>/__tests__/runtime/__mocks__/fullstory-react-native.js"
-        },
         "transform": {
           "^.+\\.(js|ts|tsx)$": [
             "babel-jest",

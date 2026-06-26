@@ -4,7 +4,7 @@ module.exports = {
   babelOptions: {
     filename: path.join(
       __dirname,
-      'ReactNativeNewArch/node_modules/react/cjs/react.development.js',
+      'ReactNativeNewArch/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-prod.js',
     ),
   },
 };
