@@ -23,6 +23,7 @@ describe('FullStory commit hook is injected into shipped ReactFabric renderers',
         plugins: [plugin],
         parserOpts: { plugins: ['jsx', 'flow'] },
         presets: [],
+        compact: false,
       });
 
       expect(result).not.toBeNull();

@@ -38,6 +38,7 @@
     "@babel/plugin-syntax-jsx": "^7.0.0",
     "@babel/preset-env": "7.0.0",
     "@react-native/babel-preset": "^0.82.0",
+    "@react-native/jest-preset": "^0.86.0",
     "@testing-library/react-native": "^13.3.3",
     "@types/react": "^19.1.1",
     "babel-plugin-tester": "^11.0.4",
@@ -64,7 +65,7 @@
       {
         "displayName": "runtime",
         "cache": false,
-        "preset": "react-native",
+        "preset": "@react-native/jest-preset",
         "roots": [
           "<rootDir>/__tests__/runtime/"
         ],
