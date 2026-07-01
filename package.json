@@ -38,6 +38,7 @@
     "@babel/plugin-syntax-jsx": "^7.0.0",
     "@babel/preset-env": "7.0.0",
     "@react-native/babel-preset": "^0.82.0",
+    "@react-native/jest-preset": "^0.86.0",
     "@testing-library/react-native": "^13.3.3",
     "@types/react": "^19.1.1",
     "babel-plugin-tester": "^11.0.4",
@@ -46,7 +47,7 @@
     "jest": "^29.7.0",
     "prettier": "3.0.3",
     "react": "^19.1.1",
-    "react-native": "^0.82.0",
+    "react-native": "^0.86.0",
     "react-test-renderer": "^19.1.1"
   },
   "jest": {
@@ -64,16 +65,13 @@
       {
         "displayName": "runtime",
         "cache": false,
-        "preset": "react-native",
+        "preset": "@react-native/jest-preset",
         "roots": [
           "<rootDir>/__tests__/runtime/"
         ],
         "testMatch": [
           "**/__tests__/runtime/**/*.test.js"
         ],
-        "moduleNameMapper": {
-          "^@fullstory/react-native$": "<rootDir>/__tests__/runtime/__mocks__/fullstory-react-native.js"
-        },
         "transform": {
           "^.+\\.(js|ts|tsx)$": [
             "babel-jest",
