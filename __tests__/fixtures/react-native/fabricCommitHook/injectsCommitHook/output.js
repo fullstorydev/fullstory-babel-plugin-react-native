@@ -6,16 +6,48 @@ function commitMutationEffectsOnFiber(finishedWork, root) {
   commitReconciliationEffects(finishedWork);
   if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectFSCommitHook === undefined) {
     const { Platform } = require('react-native');
+    // Verify architectural assumptions once at startup. We throw rather than
+    // silently disable: a silent failure means FS privacy attributes (fsClass,
+    // fsAttribute, etc.) are never forwarded to the SDK, which could cause PII
+    // to appear unmasked in session recordings.
+    if (typeof getPublicInstance !== 'function') {
+      throw new Error(
+        '[Fullstory] ReactFabric renderer incompatibility: getPublicInstance is not ' +
+          'defined in this build. Please file an issue at ' +
+          'https://github.com/fullstorydev/fullstory-babel-plugin-react-native/issues',
+      );
+    }
     global.__FULLSTORY_BABEL_PLUGIN_shouldInjectFSCommitHook =
       (global.RN$Bridgeless || global.__turboModuleProxy != null) &&
       Platform.OS === 'ios' &&
       !Platform.isTV;
   }
   if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectFSCommitHook) {
+    // ReactWorkTags (packages/react-reconciler/src/ReactWorkTags.js, stable since React 16):
+    //   HostComponent = 5  — native view primitives (View, Text, Image, …)
+    //   HostRoot      = 3  — tree root; fires after the shadow tree is committed to native
     if (finishedWork.tag === 5) {
-      // Collect host fibers with FS attributes.
-      // ReactWorkTags.HostComponent === 5 — the only fiber tag in React Native
-      // whose stateNode is a Fabric ShadowNode resolvable via getPublicInstance.
+      // HostComponent: the only fiber type where both conditions hold —
+      //   (a) memoizedProps carries user-visible FS attributes (fsClass, etc.)
+      //   (b) stateNode is a Fabric Instance resolvable via getPublicInstance()
+      //       to a handle accepted by applyFSPropertiesToInstance.
+      // Other tags are excluded because they lack native-backed stateNodes
+
+      // Once per bundle lifetime: verify tag-5 stateNodes are resolvable via
+      // getPublicInstance.
+      if (
+        global.__FULLSTORY_BABEL_PLUGIN_instanceValidated !== true &&
+        finishedWork.stateNode != null
+      ) {
+        if (getPublicInstance(finishedWork.stateNode) == null) {
+          throw new Error(
+            '[Fullstory] ReactFabric renderer incompatibility: getPublicInstance ' +
+              'returned null for a HostComponent stateNode. The Fabric API may have ' +
+              'changed. Please contact Fullstory support.',
+          );
+        }
+        global.__FULLSTORY_BABEL_PLUGIN_instanceValidated = true;
+      }
       var __fsProps = finishedWork.memoizedProps;
       if (
         __fsProps != null &&
