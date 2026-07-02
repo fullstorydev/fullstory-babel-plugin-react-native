@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0
+
+- iOS New Architecture (Fabric): migrated from ref rewriting to a commit-phase hook (`commitMutationEffectsOnFiber`) that batches and applies FS properties after the Fabric shadow tree is committed to native.
+
 ## 1.6.4
 
 - Fixed a bug where a component with an undefined `type` causes a runtime exception.
