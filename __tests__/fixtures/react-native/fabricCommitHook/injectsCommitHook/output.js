@@ -58,9 +58,21 @@ function commitMutationEffectsOnFiber(finishedWork, root) {
           __fsProps.dataComponent ||
           __fsProps.dataSourceFile)
       ) {
-        (global.__FULLSTORY_FS_PENDING_HOSTS || (global.__FULLSTORY_FS_PENDING_HOSTS = [])).push(
-          finishedWork,
-        );
+        var __fsOldProps =
+          finishedWork.alternate != null ? finishedWork.alternate.memoizedProps : null;
+        var __fsChanged =
+          __fsOldProps == null ||
+          __fsProps.fsClass !== __fsOldProps.fsClass ||
+          __fsProps.fsAttribute !== __fsOldProps.fsAttribute ||
+          __fsProps.fsTagName !== __fsOldProps.fsTagName ||
+          __fsProps.dataElement !== __fsOldProps.dataElement ||
+          __fsProps.dataComponent !== __fsOldProps.dataComponent ||
+          __fsProps.dataSourceFile !== __fsOldProps.dataSourceFile;
+        if (__fsChanged) {
+          (global.__FULLSTORY_FS_PENDING_HOSTS || (global.__FULLSTORY_FS_PENDING_HOSTS = [])).push(
+            finishedWork,
+          );
+        }
       }
     } else if (finishedWork.tag === 3) {
       // Drain on HostRoot — replaceContainerChildren has now committed the
