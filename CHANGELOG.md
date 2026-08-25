@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.1
+
+- Fixed a bug where the iOS Fabric commit-phase hook redispatched FS properties to native on every commit for fibers whose FS properties hadn't actually changed, causing main-thread CPU strain.
+
 ## 1.7.0
 
 - iOS New Architecture (Fabric): migrated from ref rewriting to a commit-phase hook (`commitMutationEffectsOnFiber`) that batches and applies FS properties after the Fabric shadow tree is committed to native.
