@@ -244,3 +244,126 @@ describe('Fabric commit hook — command count and drain ordering', () => {
     expect(applyFSPropertiesToInstance).toHaveBeenCalledTimes(2);
   });
 });
+
+/**
+ * These tests don't simulate Fabric's traversal, they reproduce its effect: the hook
+ * gets invoked for the same unchanged fibers on every commit, and must not
+ * redispatch for them.
+ *
+ * Out of scope: object/array-valued FS attributes use `!==`, so a new object
+ * literal reads as "changed" even if deeply equal.
+ */
+describe('Fabric commit hook — call-count regression under sibling-fanout (realistic fiber shape)', () => {
+  function makeStateNodes() {
+    return {
+      wrapper: { id: 'wrapper' },
+      staticLeaves: Array.from({ length: 20 }, (_, i) => ({ id: `static-leaf-${i}` })),
+      cyclingLeaf: { id: 'cycling-leaf' },
+    };
+  }
+
+  // Simulates one commit. `prev` is the fiber set returned by the previous
+  // commit() call, or null for the initial mount -- this is what determines
+  // whether `alternate` is null (mount) or points at the fiber actually
+  // committed last time (update), matching real React double-buffering.
+  // Every fiber is passed to commitMutationEffectsOnFiber on every commit,
+  // simulating Fabric revisiting the whole subtree whenever anything in it
+  // changes -- exactly what happens in a real app whenever the cycling leaf
+  // updates.
+  function commit(sandbox, stateNodes, prev, cyclingValue) {
+    const wrapper = {
+      tag: 5,
+      memoizedProps: { dataComponent: 'ScreenWrapper' },
+      stateNode: stateNodes.wrapper,
+      alternate: prev ? prev.wrapper : null,
+    };
+    const staticLeaves = stateNodes.staticLeaves.map((stateNode, i) => ({
+      tag: 5,
+      memoizedProps: { fsClass: `static-leaf-${i}` },
+      stateNode,
+      alternate: prev ? prev.staticLeaves[i] : null,
+    }));
+    const cyclingLeaf = {
+      tag: 5,
+      memoizedProps: { dataElement: cyclingValue },
+      stateNode: stateNodes.cyclingLeaf,
+      alternate: prev ? prev.cyclingLeaf : null,
+    };
+
+    runFibers(sandbox, [wrapper, ...staticLeaves, cyclingLeaf, { tag: 3 }]);
+
+    return { wrapper, staticLeaves, cyclingLeaf };
+  }
+
+  it('dispatches every fiber once on initial mount', () => {
+    const { sandbox, applyFSPropertiesToInstance } = makeContext();
+    const stateNodes = makeStateNodes();
+
+    commit(sandbox, stateNodes, null, 'score-0');
+
+    // wrapper + 20 static leaves + 1 cycling leaf
+    expect(applyFSPropertiesToInstance).toHaveBeenCalledTimes(22);
+  });
+
+  it('does not redispatch unchanged ancestor/sibling fibers on repeated commits, even though they are revisited every commit', () => {
+    const { sandbox, applyFSPropertiesToInstance } = makeContext();
+    const stateNodes = makeStateNodes();
+
+    let prev = commit(sandbox, stateNodes, null, 'score-0'); // initial mount
+    applyFSPropertiesToInstance.mockClear();
+
+    for (let i = 1; i <= 10; i++) {
+      prev = commit(sandbox, stateNodes, prev, `score-${i}`);
+    }
+
+    // Only the cycling leaf's own dataElement value actually changes on each
+    // of these 10 commits, so it must dispatch every time. The wrapper and
+    // all 20 static leaves are revisited on every commit -- as they would be
+    // in a real app whenever anything anywhere on screen changes -- but their
+    // own FS values never change, so none of them should redispatch.
+    expect(applyFSPropertiesToInstance).toHaveBeenCalledTimes(10);
+    for (const call of applyFSPropertiesToInstance.mock.calls) {
+      expect(call[0]).toBe(stateNodes.cyclingLeaf);
+    }
+  });
+
+  it('dispatches again when a static fiber legitimately changes value after being stable for several commits', () => {
+    const { sandbox, applyFSPropertiesToInstance } = makeContext();
+    const stateNodes = makeStateNodes();
+
+    let prev = commit(sandbox, stateNodes, null, 'score-0');
+    prev = commit(sandbox, stateNodes, prev, 'score-1');
+    prev = commit(sandbox, stateNodes, prev, 'score-2');
+    applyFSPropertiesToInstance.mockClear();
+
+    const wrapper = {
+      tag: 5,
+      memoizedProps: { dataComponent: 'ScreenWrapper' },
+      stateNode: stateNodes.wrapper,
+      alternate: prev.wrapper,
+    };
+    const staticLeaves = stateNodes.staticLeaves.map((stateNode, i) => ({
+      tag: 5,
+      memoizedProps: { fsClass: i === 0 ? 'now-different' : `static-leaf-${i}` },
+      stateNode,
+      alternate: prev.staticLeaves[i],
+    }));
+    const cyclingLeaf = {
+      tag: 5,
+      memoizedProps: { dataElement: 'score-3' },
+      stateNode: stateNodes.cyclingLeaf,
+      alternate: prev.cyclingLeaf,
+    };
+
+    runFibers(sandbox, [wrapper, ...staticLeaves, cyclingLeaf, { tag: 3 }]);
+
+    // Only the fiber whose value actually changed (plus the always-changing
+    // cycling leaf) should dispatch -- the wrapper and the other 19 untouched
+    // static leaves must still be skipped.
+    expect(applyFSPropertiesToInstance).toHaveBeenCalledTimes(2);
+    const dispatchedNodes = applyFSPropertiesToInstance.mock.calls.map(call => call[0]);
+    expect(dispatchedNodes).toEqual(
+      expect.arrayContaining([staticLeaves[0].stateNode, cyclingLeaf.stateNode]),
+    );
+  });
+});

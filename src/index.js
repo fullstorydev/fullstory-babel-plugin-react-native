@@ -12,7 +12,8 @@ import * as t from '@babel/types';
  *   COLLECT (when finishedWork.tag === 5 / HostComponent):
  *     Push the fiber onto a global pending list if its memoizedProps carry any
  *     FS attribute (fsClass / fsAttribute / fsTagName / data{Element,Component,
- *     SourceFile}).
+ *     SourceFile}) AND at least one of those attribute values actually differs
+ *     from the fiber's previous commit (finishedWork.alternate.memoizedProps).
  *
  *   DRAIN (when finishedWork.tag === 3 / HostRoot):
  *     Walk the pending list and forward each fiber's public instance + props
@@ -29,6 +30,21 @@ import * as t from '@babel/types';
  *   - If we instead dispatched during the tag-5 traversal (which happens
  *     BEFORE the root's `replaceContainerChildren`), the command would target
  *     nativeTags whose backing views have not been mounted yet.
+ *
+ * Why the collect step diffs against the previous commit:
+ *   - `commitMutationEffectsOnFiber` is called on a HostComponent fiber any
+ *     time it lies on the path to ANY change in its subtree, not only when
+ *     the fiber's own props changed (React re-walks every child of a parent
+ *     whose subtreeFlags indicate a mutation below it). Ancestor components
+ *     that wrap most of the app (e.g. safe-area/screen providers) sit on that
+ *     path for nearly every commit, so without a diff they get needlessly
+ *     re-dispatched -- and re-dispatching triggers an expensive native
+ *     cache invalidation that walks the view's entire descendant subtree,
+ *     even though that view's own FS attribute values never changed.
+ *   - `finishedWork.alternate` is the fiber's own previous version, already
+ *     retained by React for its own reconciliation -- comparing against
+ *     `alternate.memoizedProps` costs nothing extra to maintain 
+ *     and lets an unchanged fiber skip out before ever being queued.
  *
  * `getPublicInstance` is a top-level function in the same Fabric module scope,
  * so the injected code can call it directly to resolve a fiber's public
@@ -87,10 +103,21 @@ if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectFSCommitHook) {
         __fsProps.dataComponent ||
         __fsProps.dataSourceFile)
     ) {
-      (
-        global.__FULLSTORY_FS_PENDING_HOSTS ||
-        (global.__FULLSTORY_FS_PENDING_HOSTS = [])
-      ).push(finishedWork);
+      var __fsOldProps = finishedWork.alternate != null ? finishedWork.alternate.memoizedProps : null;
+      var __fsChanged =
+        __fsOldProps == null ||
+        __fsProps.fsClass !== __fsOldProps.fsClass ||
+        __fsProps.fsAttribute !== __fsOldProps.fsAttribute ||
+        __fsProps.fsTagName !== __fsOldProps.fsTagName ||
+        __fsProps.dataElement !== __fsOldProps.dataElement ||
+        __fsProps.dataComponent !== __fsOldProps.dataComponent ||
+        __fsProps.dataSourceFile !== __fsOldProps.dataSourceFile;
+      if (__fsChanged) {
+        (
+          global.__FULLSTORY_FS_PENDING_HOSTS ||
+          (global.__FULLSTORY_FS_PENDING_HOSTS = [])
+        ).push(finishedWork);
+      }
     }
   } else if (finishedWork.tag === 3) {
     // Drain on HostRoot — replaceContainerChildren has now committed the
