@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added a `disableFabricCommitHook` plugin option that fully removes the iOS Fabric commit-phase hook from the bundle.
+
 ## 1.7.1
 
 - Fixed a bug where the iOS Fabric commit-phase hook redispatched FS properties to native on every commit for fibers whose FS properties hadn't actually changed, causing main-thread CPU strain.

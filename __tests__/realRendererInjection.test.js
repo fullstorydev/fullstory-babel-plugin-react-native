@@ -37,6 +37,26 @@ describe('FullStory commit hook is injected into shipped ReactFabric renderers',
   }
 });
 
+describe('disableFabricCommitHook option fully suppresses injection', () => {
+  for (const file of RENDERER_FILES) {
+    const filePath = path.join(RENDERER_DIR, file);
+
+    it(`does not inject into ${file}`, () => {
+      const src = fs.readFileSync(filePath, 'utf8');
+      const result = babel.transformSync(src, {
+        filename: filePath,
+        plugins: [[plugin, { disableFabricCommitHook: true }]],
+        parserOpts: { plugins: ['jsx', 'flow'] },
+        presets: [],
+        compact: false,
+      });
+
+      expect(result).not.toBeNull();
+      expect(result.code).not.toContain(SENTINEL);
+    });
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Structural assertions — these guard the assumptions that underpin the injected
 // hook.  If any of these fail after a react-native upgrade, the hook must be

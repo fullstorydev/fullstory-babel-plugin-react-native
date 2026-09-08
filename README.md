@@ -38,3 +38,19 @@ module.exports = {
   plugins: ['@fullstory/react-native'],
 };
 ```
+
+### Options
+
+#### `disableFabricCommitHook`
+
+On iOS New Architecture (Fabric), this plugin instruments React's commit phase to forward FullStory privacy attributes (`fsClass`, `fsAttribute`, etc.) to native. If you need to fully remove this instrumentation -- for example, while investigating a suspected issue -- set `disableFabricCommitHook: true`. This option makes the plugin skip injecting the hook entirely.
+
+> [!Warning]
+> Disabling this hook stops FullStory privacy attributes from being applied on iOS New Architecture, which can cause PII to appear unmasked in session recordings. Only use this as a temporary mitigation, and contact Fullstory support if you hit an issue that requires it.
+
+```JavaScript
+module.exports = {
+  presets: ['module:metro-react-native-babel-preset'],
+  plugins: [['@fullstory/react-native', { disableFabricCommitHook: true }]],
+};
+```

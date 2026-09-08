@@ -43,7 +43,7 @@ import * as t from '@babel/types';
  *     even though that view's own FS attribute values never changed.
  *   - `finishedWork.alternate` is the fiber's own previous version, already
  *     retained by React for its own reconciliation -- comparing against
- *     `alternate.memoizedProps` costs nothing extra to maintain 
+ *     `alternate.memoizedProps` costs nothing extra to maintain
  *     and lets an unchanged fiber skip out before ever being queued.
  *
  * `getPublicInstance` is a top-level function in the same Fabric module scope,
@@ -612,7 +612,10 @@ export default function ({ types: t }) {
       FunctionDeclaration(path, state) {
         // Instrument the Fabric renderer's commit phase to forward FS props to
         // the native side.
-        if (isReactFabricRendererFile(state.file.opts.filename)) {
+        if (
+          isReactFabricRendererFile(state.file.opts.filename) &&
+          !state.opts.disableFabricCommitHook
+        ) {
           instrumentReactFabricCommitMutationEffects(path);
         }
       },
