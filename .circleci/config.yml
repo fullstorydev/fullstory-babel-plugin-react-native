@@ -2,7 +2,7 @@ version: 2.1
 executors:
   browser-executor:
     docker:
-      - image: cimg/node:18.18.0
+      - image: cimg/node:22.23.3
     working_directory: ~/repo
 jobs:
   build-babel-plugin-react-native:
@@ -11,14 +11,14 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-{{ checksum "package-lock.json" }}
       - run:
           name: Install
           command: npm ci
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
       - run:
           name: Audit
           command: npm audit --audit-level=low --omit=dev
@@ -31,6 +31,34 @@ jobs:
       - persist_to_workspace:
           root: .
           paths: [.]
+  # Oldest react-native in the supported range. Before 0.85 the Jest preset ships inside react-native itself, and the
+  # @react-native/jest-preset used by the "runtime" project can't run against it, so override it with `--preset react-native`.
+  test-min-react-native:
+    executor: browser-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install
+          command: npm ci
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install minimum react-native
+          command: npm install --no-save --legacy-peer-deps react-native@0.83 react@19.2.0
+      - run:
+          name: Build
+          command: npm run build
+      - run:
+          name: Test transform
+          command: npx jest --selectProjects transform
+      - run:
+          name: Test runtime
+          command: npx jest --selectProjects runtime --preset react-native --passWithNoTests
   deploy-babel-plugin-react-native:
     executor: browser-executor
     steps:
@@ -51,10 +79,15 @@ workflows:
             # test on all branches and tags (all branches are included by default)
             tags:
               only: /.*/
+      - test-min-react-native:
+          filters:
+            tags:
+              only: /.*/
       - hold:
           type: approval
           requires:
             - build-babel-plugin-react-native
+            - test-min-react-native
           filters:
             # hold only on version tags
             tags:
