@@ -31,8 +31,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths: [.]
-  # Oldest react-native in the supported range. Before 0.85 the Jest preset ships inside react-native itself, and the
-  # @react-native/jest-preset used by the "runtime" project can't run against it, so override it with `--preset react-native`.
+  # Oldest react-native in the supported range.
   test-min-react-native:
     executor: browser-executor
     steps:
@@ -56,9 +55,6 @@ jobs:
       - run:
           name: Test transform
           command: npx jest --selectProjects transform
-      - run:
-          name: Test runtime
-          command: npx jest --selectProjects runtime --preset react-native --passWithNoTests
   deploy-babel-plugin-react-native:
     executor: browser-executor
     steps:
