@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.2
+
+- Fixed a bug where the injected `screen-name` attribute broke `@react-navigation/drawer` >= 7.14 when `route` is not in scope.
+
 ## 1.7.1
 
 - Fixed a bug where the iOS Fabric commit-phase hook redispatched FS properties to native on every commit for fibers whose FS properties hadn't actually changed, causing main-thread CPU strain.
