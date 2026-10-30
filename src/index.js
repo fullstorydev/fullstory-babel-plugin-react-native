@@ -43,7 +43,7 @@ import * as t from '@babel/types';
  *     even though that view's own FS attribute values never changed.
  *   - `finishedWork.alternate` is the fiber's own previous version, already
  *     retained by React for its own reconciliation -- comparing against
- *     `alternate.memoizedProps` costs nothing extra to maintain 
+ *     `alternate.memoizedProps` costs nothing extra to maintain
  *     and lets an unchanged fiber skip out before ever being queued.
  *
  * `getPublicInstance` is a top-level function in the same Fabric module scope,
@@ -593,6 +593,29 @@ function isReactFabricRendererFile(filename) {
   return REACT_FABRIC_FILE_RE.test(filename);
 }
 
+/*
+ * Build the expression that yields the current route's name for the
+ * `screen-name` attribute injected into @react-navigation screen wrappers.
+ *
+ * Most navigators have a `route` binding in scope where the wrapper is created,
+ * but some (e.g. @react-navigation/drawer >= 7.14's `DrawerScene`) only receive
+ * `descriptor`, from which the route is reachable as `descriptor.route`.
+ * Referencing an unbound `route` throws a ReferenceError at render time, so
+ * return null when neither is available and let the caller skip the injection.
+ */
+function getRouteNameExpression(t, path) {
+  if (path.scope.hasBinding('route')) {
+    return t.memberExpression(t.identifier('route'), t.identifier('name'));
+  }
+  if (path.scope.hasBinding('descriptor')) {
+    return t.memberExpression(
+      t.memberExpression(t.identifier('descriptor'), t.identifier('route')),
+      t.identifier('name'),
+    );
+  }
+  return null;
+}
+
 /* eslint-disable complexity */
 export default function ({ types: t }) {
   return {
@@ -636,16 +659,15 @@ export default function ({ types: t }) {
           filename.includes('native-stack/src/views/NativeStackView');
 
         if (isMaybeScreenView || isNativeStackView) {
+          const routeName = getRouteNameExpression(t, path);
+          if (!routeName) {
+            return;
+          }
           path.node.attributes.push(
             t.jsxAttribute(
               t.jsxIdentifier('fsAttribute'),
               t.jsxExpressionContainer(
-                t.objectExpression([
-                  t.objectProperty(
-                    t.stringLiteral('screen-name'),
-                    t.memberExpression(t.identifier('route'), t.identifier('name')),
-                  ),
-                ]),
+                t.objectExpression([t.objectProperty(t.stringLiteral('screen-name'), routeName)]),
               ),
             ),
           );
@@ -690,16 +712,16 @@ export default function ({ types: t }) {
           return;
         }
 
+        const routeName = getRouteNameExpression(t, path);
+        if (!routeName) {
+          return;
+        }
+
         // Add fsAttribute to the props object
         maybeProps.properties.push(
           t.objectProperty(
             t.identifier('fsAttribute'),
-            t.objectExpression([
-              t.objectProperty(
-                t.stringLiteral('screen-name'),
-                t.memberExpression(t.identifier('route'), t.identifier('name')),
-              ),
-            ]),
+            t.objectExpression([t.objectProperty(t.stringLiteral('screen-name'), routeName)]),
           ),
         );
       },
