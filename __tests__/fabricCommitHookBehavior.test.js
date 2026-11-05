@@ -195,6 +195,101 @@ describe('Fabric commit hook — collect phase (tag 5 / HostComponent)', () => {
     expect(applyFSPropertiesToInstance).not.toHaveBeenCalled();
   });
 
+  it('collects an update that removes an FS prop (X -> undefined)', () => {
+    const { sandbox, applyFSPropertiesToInstance } = makeContext();
+    const stateNode = { id: 'view' };
+    const prev = { tag: 5, memoizedProps: { fsClass: 'fs-unmask' }, stateNode };
+    const next = { tag: 5, memoizedProps: { testID: 'x' }, stateNode, alternate: prev };
+
+    runFibers(sandbox, [next, { tag: 3 }]);
+
+    expect(applyFSPropertiesToInstance).toHaveBeenCalledTimes(1);
+    // Only the removed prop is in the batch, sent as null so native clears it.
+    expect(applyFSPropertiesToInstance).toHaveBeenCalledWith(stateNode, { fsClass: null });
+  });
+
+  it('does not collect an update where neither old nor new props have changed FS props', () => {
+    const { sandbox, applyFSPropertiesToInstance } = makeContext();
+    const prev = { tag: 5, memoizedProps: { testID: 'a' }, stateNode: {} };
+    const next = { tag: 5, memoizedProps: { testID: 'b' }, stateNode: {}, alternate: prev };
+    runFibers(sandbox, [next, { tag: 3 }]);
+    expect(applyFSPropertiesToInstance).not.toHaveBeenCalled();
+  });
+
+  it('does not re-collect an update where only data* props differ (assumed immutable after mount)', () => {
+    const { sandbox, applyFSPropertiesToInstance } = makeContext();
+    const prev = { tag: 5, memoizedProps: { dataElement: 'a' }, stateNode: {} };
+    const next = { tag: 5, memoizedProps: { dataElement: 'b' }, stateNode: {}, alternate: prev };
+    runFibers(sandbox, [next, { tag: 3 }]);
+    expect(applyFSPropertiesToInstance).not.toHaveBeenCalled();
+  });
+
+  it('on mount, batches only the FS props that are present', () => {
+    const { sandbox, applyFSPropertiesToInstance } = makeContext();
+    const stateNode = {};
+    runFibers(sandbox, [
+      {
+        tag: 5,
+        memoizedProps: { testID: 'x', fsClass: 'a', dataElement: 'View' },
+        stateNode,
+      },
+      { tag: 3 },
+    ]);
+    expect(applyFSPropertiesToInstance).toHaveBeenCalledWith(stateNode, {
+      fsClass: 'a',
+      dataElement: 'View',
+    });
+  });
+
+  it('on update, leaves unchanged props out of the batch (including data*)', () => {
+    const { sandbox, applyFSPropertiesToInstance } = makeContext();
+    const stateNode = {};
+    const prev = {
+      tag: 5,
+      memoizedProps: { fsClass: 'a', fsTagName: 'section', dataElement: 'View' },
+      stateNode,
+    };
+    const next = {
+      tag: 5,
+      memoizedProps: { fsClass: 'b', fsTagName: 'section', dataElement: 'View' },
+      stateNode,
+      alternate: prev,
+    };
+    runFibers(sandbox, [next, { tag: 3 }]);
+    expect(applyFSPropertiesToInstance).toHaveBeenCalledWith(stateNode, { fsClass: 'b' });
+  });
+
+  it('on update, sends a mix of new values and nulls for removed props', () => {
+    const { sandbox, applyFSPropertiesToInstance } = makeContext();
+    const stateNode = {};
+    const attrs = { color: 'red' };
+    const prev = {
+      tag: 5,
+      memoizedProps: { fsClass: 'a', fsAttribute: { color: 'blue' }, fsTagName: 'x' },
+      stateNode,
+    };
+    const next = {
+      tag: 5,
+      memoizedProps: { fsAttribute: attrs, fsTagName: undefined },
+      stateNode,
+      alternate: prev,
+    };
+    runFibers(sandbox, [next, { tag: 3 }]);
+    expect(applyFSPropertiesToInstance).toHaveBeenCalledWith(stateNode, {
+      fsClass: null,
+      fsAttribute: attrs,
+      fsTagName: null,
+    });
+  });
+
+  it('does not send null for a prop that changed between two unset values', () => {
+    const { sandbox, applyFSPropertiesToInstance } = makeContext();
+    const prev = { tag: 5, memoizedProps: { fsClass: '' }, stateNode: {} };
+    const next = { tag: 5, memoizedProps: { fsClass: undefined }, stateNode: {}, alternate: prev };
+    runFibers(sandbox, [next, { tag: 3 }]);
+    expect(applyFSPropertiesToInstance).not.toHaveBeenCalled();
+  });
+
   it.each([0, 1, 6, 11, 14])('ignores fibers with tag %d (non-HostComponent)', tag => {
     const { sandbox, applyFSPropertiesToInstance } = makeContext();
     runFibers(sandbox, [{ tag, memoizedProps: { fsClass: 'X' }, stateNode: {} }, { tag: 3 }]);
@@ -285,7 +380,7 @@ describe('Fabric commit hook — call-count regression under sibling-fanout (rea
     }));
     const cyclingLeaf = {
       tag: 5,
-      memoizedProps: { dataElement: cyclingValue },
+      memoizedProps: { fsClass: cyclingValue },
       stateNode: stateNodes.cyclingLeaf,
       alternate: prev ? prev.cyclingLeaf : null,
     };
@@ -316,7 +411,7 @@ describe('Fabric commit hook — call-count regression under sibling-fanout (rea
       prev = commit(sandbox, stateNodes, prev, `score-${i}`);
     }
 
-    // Only the cycling leaf's own dataElement value actually changes on each
+    // Only the cycling leaf's own fsClass value actually changes on each
     // of these 10 commits, so it must dispatch every time. The wrapper and
     // all 20 static leaves are revisited on every commit -- as they would be
     // in a real app whenever anything anywhere on screen changes -- but their
@@ -350,7 +445,7 @@ describe('Fabric commit hook — call-count regression under sibling-fanout (rea
     }));
     const cyclingLeaf = {
       tag: 5,
-      memoizedProps: { dataElement: 'score-3' },
+      memoizedProps: { fsClass: 'score-3' },
       stateNode: stateNodes.cyclingLeaf,
       alternate: prev.cyclingLeaf,
     };
