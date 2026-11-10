@@ -21,60 +21,6 @@ function commitMutationEffectsOnFiber(finishedWork, root) {
       (global.RN$Bridgeless || global.__turboModuleProxy != null) &&
       Platform.OS === 'ios' &&
       !Platform.isTV;
-    // Builds the batch of FS props native needs to change: a value for a prop that is set or
-    // changed, null for a prop that lost its value. Unchanged props are left out, because every
-    // native setter flushes FullStory's caches for the view and its descendants. Returns null when
-    // there is nothing to send. On update (oldProps != null) the data* props are skipped: the
-    // babel plugin injects them and they never change after mount.
-    // Written as straight-line code on purpose: this runs for every queued fiber, and looping over
-    // a key list was measured at ~3x the cost.
-    global.__FULLSTORY_BABEL_PLUGIN_buildBatch = function (props, oldProps) {
-      var batch = {},
-        count = 0;
-      if (oldProps == null) {
-        if (props.fsClass) {
-          batch.fsClass = props.fsClass;
-          count++;
-        }
-        if (props.fsAttribute) {
-          batch.fsAttribute = props.fsAttribute;
-          count++;
-        }
-        if (props.fsTagName) {
-          batch.fsTagName = props.fsTagName;
-          count++;
-        }
-        if (props.dataElement) {
-          batch.dataElement = props.dataElement;
-          count++;
-        }
-        if (props.dataComponent) {
-          batch.dataComponent = props.dataComponent;
-          count++;
-        }
-        if (props.dataSourceFile) {
-          batch.dataSourceFile = props.dataSourceFile;
-          count++;
-        }
-      } else {
-        if (props.fsClass !== oldProps.fsClass && (props.fsClass || oldProps.fsClass)) {
-          batch.fsClass = props.fsClass || null;
-          count++;
-        }
-        if (
-          props.fsAttribute !== oldProps.fsAttribute &&
-          (props.fsAttribute || oldProps.fsAttribute)
-        ) {
-          batch.fsAttribute = props.fsAttribute || null;
-          count++;
-        }
-        if (props.fsTagName !== oldProps.fsTagName && (props.fsTagName || oldProps.fsTagName)) {
-          batch.fsTagName = props.fsTagName || null;
-          count++;
-        }
-      }
-      return count ? batch : null;
-    };
   }
   if (global.__FULLSTORY_BABEL_PLUGIN_shouldInjectFSCommitHook) {
     // ReactWorkTags (packages/react-reconciler/src/ReactWorkTags.js, stable since React 16):
@@ -106,27 +52,72 @@ function commitMutationEffectsOnFiber(finishedWork, root) {
       var __fsAlt = finishedWork.alternate;
       var __fsOldProps = __fsAlt != null ? __fsAlt.memoizedProps : null;
       if (__fsProps != null && __fsProps !== __fsOldProps) {
-        // Cheap inline check first; the batch is only built when something differs.
-        var __fsDirty =
-          __fsOldProps == null
-            ? // If there are no old props, we are mounting, so any present FS prop makes the fiber dirty.
-              __fsProps.fsClass ||
-              __fsProps.fsAttribute ||
-              __fsProps.fsTagName ||
-              __fsProps.dataElement ||
-              __fsProps.dataComponent ||
-              __fsProps.dataSourceFile
-            : // Otherwise, we are updating, so compare each FS prop. We assume data* props do not change after mount.
-              __fsProps.fsClass !== __fsOldProps.fsClass ||
-              __fsProps.fsAttribute !== __fsOldProps.fsAttribute ||
-              __fsProps.fsTagName !== __fsOldProps.fsTagName;
-        if (__fsDirty) {
-          var __fsBatch = global.__FULLSTORY_BABEL_PLUGIN_buildBatch(__fsProps, __fsOldProps);
-          if (__fsBatch) {
-            (
-              global.__FULLSTORY_FS_PENDING_HOSTS || (global.__FULLSTORY_FS_PENDING_HOSTS = [])
-            ).push(finishedWork, __fsBatch);
+        // The props to send are normally the fiber's own props. A prop that went from a value to
+        // nothing is absent from the new props, so the callee could not tell it was removed; for
+        // that case send a shallow copy where the key is null, which means "clear it".
+        var __fsSend = __fsProps;
+        var __fsDirty;
+        if (__fsOldProps == null) {
+          // No old props, so we are mounting: any present FS prop makes the fiber dirty.
+          __fsDirty =
+            __fsProps.fsClass ||
+            __fsProps.fsAttribute ||
+            __fsProps.fsTagName ||
+            __fsProps.dataElement ||
+            __fsProps.dataComponent ||
+            __fsProps.dataSourceFile;
+        } else {
+          // Updating: one comparison per FS prop. A prop that differs makes the fiber dirty, and if
+          // it lost its value it is also sent as null. The copy is made on the first removal.
+          __fsDirty = false;
+          if (__fsProps.fsClass !== __fsOldProps.fsClass) {
+            __fsDirty = true;
+            if (__fsOldProps.fsClass && !__fsProps.fsClass) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.fsClass = null;
+            }
           }
+          if (__fsProps.fsAttribute !== __fsOldProps.fsAttribute) {
+            __fsDirty = true;
+            if (__fsOldProps.fsAttribute && !__fsProps.fsAttribute) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.fsAttribute = null;
+            }
+          }
+          if (__fsProps.fsTagName !== __fsOldProps.fsTagName) {
+            __fsDirty = true;
+            if (__fsOldProps.fsTagName && !__fsProps.fsTagName) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.fsTagName = null;
+            }
+          }
+          if (__fsProps.dataElement !== __fsOldProps.dataElement) {
+            __fsDirty = true;
+            if (__fsOldProps.dataElement && !__fsProps.dataElement) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.dataElement = null;
+            }
+          }
+          if (__fsProps.dataComponent !== __fsOldProps.dataComponent) {
+            __fsDirty = true;
+            if (__fsOldProps.dataComponent && !__fsProps.dataComponent) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.dataComponent = null;
+            }
+          }
+          if (__fsProps.dataSourceFile !== __fsOldProps.dataSourceFile) {
+            __fsDirty = true;
+            if (__fsOldProps.dataSourceFile && !__fsProps.dataSourceFile) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.dataSourceFile = null;
+            }
+          }
+        }
+        if (__fsDirty) {
+          (global.__FULLSTORY_FS_PENDING_HOSTS || (global.__FULLSTORY_FS_PENDING_HOSTS = [])).push(
+            finishedWork,
+            __fsSend,
+          );
         }
       }
     } else if (finishedWork.tag === 3) {
@@ -139,7 +130,7 @@ function commitMutationEffectsOnFiber(finishedWork, root) {
         if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
           global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
         }
-        // The queue is flat: [fiber, batch, fiber, batch, ...]
+        // The queue is flat: [fiber, props to send, fiber, props to send, ...]
         for (var __fsI = 0; __fsI < __fsPending.length; __fsI += 2) {
           try {
             var __fsStateNode = __fsPending[__fsI].stateNode;

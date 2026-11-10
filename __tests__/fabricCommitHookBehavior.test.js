@@ -195,17 +195,27 @@ describe('Fabric commit hook — collect phase (tag 5 / HostComponent)', () => {
     expect(applyFSPropertiesToInstance).not.toHaveBeenCalled();
   });
 
-  it('collects an update that removes an FS prop (X -> undefined)', () => {
+  it.each([
+    'fsClass',
+    'fsAttribute',
+    'fsTagName',
+    'dataElement',
+    'dataComponent',
+    'dataSourceFile',
+  ])('collects an update that removes the %s prop and sends it as null', prop => {
     const { sandbox, applyFSPropertiesToInstance } = makeContext();
     const stateNode = { id: 'view' };
-    const prev = { tag: 5, memoizedProps: { fsClass: 'fs-unmask' }, stateNode };
+    const prev = { tag: 5, memoizedProps: { [prop]: 'fs-unmask' }, stateNode };
     const next = { tag: 5, memoizedProps: { testID: 'x' }, stateNode, alternate: prev };
 
     runFibers(sandbox, [next, { tag: 3 }]);
 
     expect(applyFSPropertiesToInstance).toHaveBeenCalledTimes(1);
-    // Only the removed prop is in the batch, sent as null so native clears it.
-    expect(applyFSPropertiesToInstance).toHaveBeenCalledWith(stateNode, { fsClass: null });
+    // The other props are carried along; the removed one is null so the SDK clears it.
+    expect(applyFSPropertiesToInstance).toHaveBeenCalledWith(stateNode, {
+      testID: 'x',
+      [prop]: null,
+    });
   });
 
   it('does not collect an update where neither old nor new props have changed FS props', () => {
@@ -216,78 +226,96 @@ describe('Fabric commit hook — collect phase (tag 5 / HostComponent)', () => {
     expect(applyFSPropertiesToInstance).not.toHaveBeenCalled();
   });
 
-  it('does not re-collect an update where only data* props differ (assumed immutable after mount)', () => {
+  it.each(['dataElement', 'dataComponent', 'dataSourceFile'])(
+    'collects an update where only %s changed and passes the fiber props as they are',
+    prop => {
+      const { sandbox, applyFSPropertiesToInstance } = makeContext();
+      const stateNode = {};
+      const nextProps = { [prop]: 'b' };
+      const prev = { tag: 5, memoizedProps: { [prop]: 'a' }, stateNode };
+      const next = { tag: 5, memoizedProps: nextProps, stateNode, alternate: prev };
+      runFibers(sandbox, [next, { tag: 3 }]);
+      expect(applyFSPropertiesToInstance).toHaveBeenCalledTimes(1);
+      expect(applyFSPropertiesToInstance.mock.calls[0][1]).toBe(nextProps);
+    },
+  );
+
+  it('on update, does not collect when FS props are unchanged and only other props differ', () => {
     const { sandbox, applyFSPropertiesToInstance } = makeContext();
-    const prev = { tag: 5, memoizedProps: { dataElement: 'a' }, stateNode: {} };
-    const next = { tag: 5, memoizedProps: { dataElement: 'b' }, stateNode: {}, alternate: prev };
+    const fsProps = {
+      fsClass: 'a',
+      fsTagName: 'section',
+      dataElement: 'View',
+      dataComponent: 'Row',
+      dataSourceFile: 'a.tsx',
+    };
+    const prev = { tag: 5, memoizedProps: { style: {}, ...fsProps }, stateNode: {} };
+    const next = {
+      tag: 5,
+      memoizedProps: { style: { flex: 1 }, ...fsProps },
+      stateNode: {},
+      alternate: prev,
+    };
     runFibers(sandbox, [next, { tag: 3 }]);
     expect(applyFSPropertiesToInstance).not.toHaveBeenCalled();
   });
 
-  it('on mount, batches only the FS props that are present', () => {
+  it('passes the fiber\'s own props object, uncopied, when nothing was removed', () => {
     const { sandbox, applyFSPropertiesToInstance } = makeContext();
     const stateNode = {};
-    runFibers(sandbox, [
-      {
-        tag: 5,
-        memoizedProps: { testID: 'x', fsClass: 'a', dataElement: 'View' },
-        stateNode,
-      },
-      { tag: 3 },
-    ]);
-    expect(applyFSPropertiesToInstance).toHaveBeenCalledWith(stateNode, {
-      fsClass: 'a',
-      dataElement: 'View',
-    });
-  });
-
-  it('on update, leaves unchanged props out of the batch (including data*)', () => {
-    const { sandbox, applyFSPropertiesToInstance } = makeContext();
-    const stateNode = {};
+    const nextProps = { fsClass: 'b', fsTagName: 'section', dataElement: 'View' };
     const prev = {
       tag: 5,
       memoizedProps: { fsClass: 'a', fsTagName: 'section', dataElement: 'View' },
       stateNode,
     };
-    const next = {
-      tag: 5,
-      memoizedProps: { fsClass: 'b', fsTagName: 'section', dataElement: 'View' },
-      stateNode,
-      alternate: prev,
-    };
+    const next = { tag: 5, memoizedProps: nextProps, stateNode, alternate: prev };
     runFibers(sandbox, [next, { tag: 3 }]);
-    expect(applyFSPropertiesToInstance).toHaveBeenCalledWith(stateNode, { fsClass: 'b' });
+    expect(applyFSPropertiesToInstance.mock.calls[0][1]).toBe(nextProps);
   });
 
-  it('on update, sends a mix of new values and nulls for removed props', () => {
+  it('on removal, sends a copy with null for each removed prop and leaves the fiber props alone', () => {
     const { sandbox, applyFSPropertiesToInstance } = makeContext();
     const stateNode = {};
     const attrs = { color: 'red' };
     const prev = {
       tag: 5,
-      memoizedProps: { fsClass: 'a', fsAttribute: { color: 'blue' }, fsTagName: 'x' },
+      memoizedProps: {
+        fsClass: 'a',
+        fsAttribute: { color: 'blue' },
+        fsTagName: 'x',
+        dataElement: 'old',
+        testID: 't',
+      },
       stateNode,
     };
-    const next = {
-      tag: 5,
-      memoizedProps: { fsAttribute: attrs, fsTagName: undefined },
-      stateNode,
-      alternate: prev,
-    };
+    const nextProps = { fsAttribute: attrs, dataElement: 'new', dataSourceFile: 'a.tsx', testID: 't' };
+    const next = { tag: 5, memoizedProps: nextProps, stateNode, alternate: prev };
     runFibers(sandbox, [next, { tag: 3 }]);
-    expect(applyFSPropertiesToInstance).toHaveBeenCalledWith(stateNode, {
-      fsClass: null,
-      fsAttribute: attrs,
-      fsTagName: null,
+
+    const sent = applyFSPropertiesToInstance.mock.calls[0][1];
+    expect(sent).toEqual({
+      fsClass: null, // removed
+      fsAttribute: attrs, // changed
+      fsTagName: null, // removed
+      dataElement: 'new', // changed
+      dataSourceFile: 'a.tsx', // added
+      testID: 't',
     });
+    // React's own props object must not be mutated.
+    expect(sent).not.toBe(nextProps);
+    expect('fsClass' in nextProps).toBe(false);
+    expect('fsTagName' in nextProps).toBe(false);
   });
 
-  it('does not send null for a prop that changed between two unset values', () => {
+  it('may collect a fiber whose FS prop only changed between two unset values', () => {
     const { sandbox, applyFSPropertiesToInstance } = makeContext();
     const prev = { tag: 5, memoizedProps: { fsClass: '' }, stateNode: {} };
     const next = { tag: 5, memoizedProps: { fsClass: undefined }, stateNode: {}, alternate: prev };
     runFibers(sandbox, [next, { tag: 3 }]);
-    expect(applyFSPropertiesToInstance).not.toHaveBeenCalled();
+    // The inline gate sees '' !== undefined and queues the fiber; the SDK then finds nothing to
+    // send. The hook may over-collect here, but it must never under-collect.
+    expect(applyFSPropertiesToInstance).toHaveBeenCalledTimes(1);
   });
 
   it.each([0, 1, 6, 11, 14])('ignores fibers with tag %d (non-HostComponent)', tag => {
