@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0
+
+- Fixed a bug on iOS New Architecture where removing a Fullstory property was never forwarded to native, leaving the view with a stale prop.
+
 ## 1.7.2
 
 - Fixed a bug where the injected `screen-name` attribute broke `@react-navigation/drawer` >= 7.14 when `route` is not in scope.
