@@ -49,28 +49,74 @@ function commitMutationEffectsOnFiber(finishedWork, root) {
         global.__FULLSTORY_BABEL_PLUGIN_instanceValidated = true;
       }
       var __fsProps = finishedWork.memoizedProps;
-      if (
-        __fsProps != null &&
-        (__fsProps.fsClass ||
-          __fsProps.fsAttribute ||
-          __fsProps.fsTagName ||
-          __fsProps.dataElement ||
-          __fsProps.dataComponent ||
-          __fsProps.dataSourceFile)
-      ) {
-        var __fsOldProps =
-          finishedWork.alternate != null ? finishedWork.alternate.memoizedProps : null;
-        var __fsChanged =
-          __fsOldProps == null ||
-          __fsProps.fsClass !== __fsOldProps.fsClass ||
-          __fsProps.fsAttribute !== __fsOldProps.fsAttribute ||
-          __fsProps.fsTagName !== __fsOldProps.fsTagName ||
-          __fsProps.dataElement !== __fsOldProps.dataElement ||
-          __fsProps.dataComponent !== __fsOldProps.dataComponent ||
-          __fsProps.dataSourceFile !== __fsOldProps.dataSourceFile;
-        if (__fsChanged) {
+      var __fsAlt = finishedWork.alternate;
+      var __fsOldProps = __fsAlt != null ? __fsAlt.memoizedProps : null;
+      if (__fsProps != null && __fsProps !== __fsOldProps) {
+        // The props to send are normally the fiber's own props. A prop that went from a value to
+        // nothing is absent from the new props, so the callee could not tell it was removed; for
+        // that case send a shallow copy where the key is null, which means "clear it".
+        var __fsSend = __fsProps;
+        var __fsDirty;
+        if (__fsOldProps == null) {
+          // No old props, so we are mounting: any present FS prop makes the fiber dirty.
+          __fsDirty =
+            __fsProps.fsClass ||
+            __fsProps.fsAttribute ||
+            __fsProps.fsTagName ||
+            __fsProps.dataElement ||
+            __fsProps.dataComponent ||
+            __fsProps.dataSourceFile;
+        } else {
+          // Updating: one comparison per FS prop. A prop that differs makes the fiber dirty, and if
+          // it lost its value it is also sent as null. The copy is made on the first removal.
+          __fsDirty = false;
+          if (__fsProps.fsClass !== __fsOldProps.fsClass) {
+            __fsDirty = true;
+            if (__fsOldProps.fsClass && !__fsProps.fsClass) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.fsClass = null;
+            }
+          }
+          if (__fsProps.fsAttribute !== __fsOldProps.fsAttribute) {
+            __fsDirty = true;
+            if (__fsOldProps.fsAttribute && !__fsProps.fsAttribute) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.fsAttribute = null;
+            }
+          }
+          if (__fsProps.fsTagName !== __fsOldProps.fsTagName) {
+            __fsDirty = true;
+            if (__fsOldProps.fsTagName && !__fsProps.fsTagName) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.fsTagName = null;
+            }
+          }
+          if (__fsProps.dataElement !== __fsOldProps.dataElement) {
+            __fsDirty = true;
+            if (__fsOldProps.dataElement && !__fsProps.dataElement) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.dataElement = null;
+            }
+          }
+          if (__fsProps.dataComponent !== __fsOldProps.dataComponent) {
+            __fsDirty = true;
+            if (__fsOldProps.dataComponent && !__fsProps.dataComponent) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.dataComponent = null;
+            }
+          }
+          if (__fsProps.dataSourceFile !== __fsOldProps.dataSourceFile) {
+            __fsDirty = true;
+            if (__fsOldProps.dataSourceFile && !__fsProps.dataSourceFile) {
+              if (__fsSend === __fsProps) __fsSend = Object.assign({}, __fsProps);
+              __fsSend.dataSourceFile = null;
+            }
+          }
+        }
+        if (__fsDirty) {
           (global.__FULLSTORY_FS_PENDING_HOSTS || (global.__FULLSTORY_FS_PENDING_HOSTS = [])).push(
             finishedWork,
+            __fsSend,
           );
         }
       }
@@ -84,14 +130,14 @@ function commitMutationEffectsOnFiber(finishedWork, root) {
         if (!global.__FULLSTORY_BABEL_PLUGIN_module) {
           global.__FULLSTORY_BABEL_PLUGIN_module = require('@fullstory/react-native');
         }
-        for (var __fsI = 0; __fsI < __fsPending.length; __fsI++) {
+        // The queue is flat: [fiber, props to send, fiber, props to send, ...]
+        for (var __fsI = 0; __fsI < __fsPending.length; __fsI += 2) {
           try {
-            var __fsFiber = __fsPending[__fsI];
-            var __fsStateNode = __fsFiber.stateNode;
+            var __fsStateNode = __fsPending[__fsI].stateNode;
             if (__fsStateNode != null) {
               global.__FULLSTORY_BABEL_PLUGIN_module.applyFSPropertiesToInstance(
                 getPublicInstance(__fsStateNode),
-                __fsFiber.memoizedProps,
+                __fsPending[__fsI + 1],
               );
             }
           } catch (e) {}
