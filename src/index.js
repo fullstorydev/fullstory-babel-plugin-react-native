@@ -463,6 +463,30 @@ function fixUIManagerJSInterface(path) {
   }
 }
 
+// True if a class body already has a method with this (non-computed) name.
+function hasClassMethodNamed(bodyArray, name) {
+  return bodyArray.some(
+    member =>
+      member &&
+      member.type === 'ClassMethod' &&
+      !member.computed &&
+      member.key &&
+      (member.key.name === name || member.key.value === name),
+  );
+}
+
+// True if an object literal already has a property with this (non-computed) name.
+function hasObjectPropertyNamed(properties, name) {
+  return properties.some(
+    prop =>
+      prop &&
+      (prop.type === 'ObjectProperty' || prop.type === 'ObjectMethod') &&
+      !prop.computed &&
+      prop.key &&
+      (prop.key.name === name || prop.key.value === name),
+  );
+}
+
 function fixPressability(t, path) {
   // make sure that this path has a node with an id named what we expect
   if (!path.node || !path.node.id || !path.node.id.name || path.node.id.name !== 'Pressability') {
@@ -480,6 +504,11 @@ function fixPressability(t, path) {
   }
 
   var bodyArray = path.node.body.body;
+
+  // Already instrumented?
+  if (hasClassMethodNamed(bodyArray, '_onFsPressForward_Pressability')) {
+    return;
+  }
 
   // traverse the path's visitor pattern
   path.traverse({
@@ -563,6 +592,11 @@ function fixTouchableMixin(t, path) {
     return;
   }
 
+  // Already instrumented?
+  if (hasObjectPropertyNamed(mixin.init.properties, '_onFsPressForward')) {
+    return;
+  }
+
   // traverse the path's visitor pattern
   path.traverse({
     // test out the Object properties
@@ -634,6 +668,19 @@ function instrumentReactFabricCommitMutationEffects(path) {
   // bundles; bail defensively if `finishedWork` was renamed under minification.
   const firstParam = path.node.params[0];
   if (!firstParam || !t.isIdentifier(firstParam) || firstParam.name !== 'finishedWork') {
+    return;
+  }
+
+  let alreadyInstrumented = false;
+  path.traverse({
+    Identifier(idPath) {
+      if (idPath.node.name === '__FULLSTORY_BABEL_PLUGIN_shouldInjectFSCommitHook') {
+        alreadyInstrumented = true;
+        idPath.stop();
+      }
+    },
+  });
+  if (alreadyInstrumented) {
     return;
   }
 
