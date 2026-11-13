@@ -65,9 +65,9 @@ describe('Pressability patch is idempotent', () => {
     expect(pressability(doubled)).toEqual({ definitions: 1, pressCalls: 1, longPressCalls: 1 });
   });
 
-  it('keeps patching a Pressability that has not been patched yet after one that has', () => {
-    // Guards against an over-eager guard (for example a module-level flag): a second, unpatched
-    // copy of the file in the same Babel process must still be patched.
+  it('patches every unpatched copy of the file, not just the first one in the process', () => {
+    // Each file must be judged by its own contents, so a second, separate
+    // unpatched copy still has to be patched after the first one was.
     transform(source);
     expect(pressability(transform(source))).toEqual({
       definitions: 1,
