@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Inject the `screen-name` attribute for the navigation code that Expo Router SDK 58+ ships under `expo-router/build/react-navigation`, which is precompiled CommonJS (`(0, _jsxruntime().jsx)(_reactnativescreens().ScreenStackItem, ...)`). Previously only `node_modules/@react-navigation` files and the `_jsx(...)` call shape were matched, so Expo SDK 58 apps emitted no page events.
+
 ## 1.8.1
 
 - Make Pressability, TouchableMixin, and Fabric commit hook patches idempotent.

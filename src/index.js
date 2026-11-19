@@ -719,6 +719,54 @@ function getRouteNameExpression(t, path) {
   return null;
 }
 
+/*
+ * Paths whose files render navigation screens and should get a `screen-name`
+ * attribute. Expo Router SDK 58+ no longer depends on @react-navigation and
+ * ships its own copy of the navigators under expo-router/build/react-navigation.
+ */
+const REACT_NAVIGATION_PATH_MARKERS = [
+  'node_modules/@react-navigation',
+  'node_modules/expo-router/build/react-navigation',
+];
+
+function isReactNavigationFile(filename) {
+  return !!filename && REACT_NAVIGATION_PATH_MARKERS.some(marker => filename.includes(marker));
+}
+
+/*
+ * True for the callee of a compiled JSX element: `_jsx` (ESM output) or
+ * `(0, _jsxruntime().jsx)` / `(0, _jsxruntime.jsxs)` (CJS output).
+ */
+function isJsxCallee(t, callee) {
+  if (t.isIdentifier(callee)) {
+    return callee.name === '_jsx';
+  }
+  if (t.isSequenceExpression(callee) && callee.expressions.length === 2) {
+    const fn = callee.expressions[1];
+    return (
+      t.isMemberExpression(fn) &&
+      !fn.computed &&
+      t.isIdentifier(fn.property) &&
+      (fn.property.name === 'jsx' || fn.property.name === 'jsxs')
+    );
+  }
+  return false;
+}
+
+/*
+ * The component name of a compiled JSX element's first argument: `MaybeScreen`
+ * (ESM) or `_ScreenFallback.MaybeScreen` / `_reactnativescreens().ScreenStackItem` (CJS).
+ */
+function getComponentName(t, node) {
+  if (t.isIdentifier(node)) {
+    return node.name;
+  }
+  if (t.isMemberExpression(node) && !node.computed && t.isIdentifier(node.property)) {
+    return node.property.name;
+  }
+  return null;
+}
+
 /* eslint-disable complexity */
 export default function ({ types: t }) {
   return {
@@ -745,8 +793,7 @@ export default function ({ types: t }) {
       // React Navigation <7.x screen name support
       JSXOpeningElement: function JSXOpeningElement(path, state) {
         const filename = state.file.opts.filename;
-        const isReactNavigationFile = filename.includes('node_modules/@react-navigation');
-        if (!isReactNavigationFile) {
+        if (!isReactNavigationFile(filename)) {
           return;
         }
         if (!t.isJSXIdentifier(path.node.name)) {
@@ -780,7 +827,7 @@ export default function ({ types: t }) {
       CallExpression: function CallExpression(path, state) {
         const filename = state.file.opts.filename;
         // only process react-navigation files
-        if (!filename.includes('node_modules/@react-navigation')) {
+        if (!isReactNavigationFile(filename)) {
           return;
         }
 
@@ -795,17 +842,13 @@ export default function ({ types: t }) {
         }
 
         // Check if this is a _jsx call
-        if (!t.isIdentifier(path.node.callee) || path.node.callee.name !== '_jsx') {
+        if (!isJsxCallee(t, path.node.callee)) {
           return;
         }
 
         // Check if first argument is MaybeScreen
-        const maybeScreenComponent = path.node.arguments[0];
-        if (
-          !t.isIdentifier(maybeScreenComponent) ||
-          (maybeScreenComponent.name !== 'MaybeScreen' &&
-            maybeScreenComponent.name !== 'ScreenStackItem')
-        ) {
+        const componentName = getComponentName(t, path.node.arguments[0]);
+        if (componentName !== 'MaybeScreen' && componentName !== 'ScreenStackItem') {
           return;
         }
 
