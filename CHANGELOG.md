@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.8.2
 
-- Inject the `screen-name` attribute for the navigation code that Expo Router SDK 58+ ships under `expo-router/build/react-navigation`, which is precompiled CommonJS (`(0, _jsxruntime().jsx)(_reactnativescreens().ScreenStackItem, ...)`). Previously only `node_modules/@react-navigation` files and the `_jsx(...)` call shape were matched, so Expo SDK 58 apps emitted no page events.
+- Fixed a bug where the `screen-name` attribute was not injected for Expo Router SDK 58+ navigation code, so Expo SDK 58 apps emitted no page events.
 
 ## 1.8.1
 
